@@ -1,0 +1,131 @@
+Request:
+
+curl --location 'http://localhost:8080/api/auth/register' \
+--header 'Content-Type: application/json' \
+--header 'Cookie: JSESSIONID=6654621FE80DF6D533E798C2884B1765' \
+--data-raw '{
+  "name": "Anu",
+  "email": "anu@gmail.com",
+  "password": "password123",
+  "gender": "FEMALE",
+   "dob":"1985-06-11"
+
+}'
+
+Response:200
+User registered successfully!
+-------------------------------------------
+Request:
+
+curl --location 'http://localhost:8080/api/auth/login' \
+--header 'Content-Type: application/json' \
+--header 'Cookie: JSESSIONID=6654621FE80DF6D533E798C2884B1765' \
+--data-raw '{
+  "email": "anu@gmail.com",
+  "password": "password123"
+}'
+
+Response:
+{
+    "accessToken": "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJhbnVAZ21haWwuY29tIiwiaWF0IjoxNzY2NjM3MzcyLCJleHAiOjE3NjY2NDA5NzJ9.jd54ZQzJFrDlt5avPjkB2AVEuTT6BnsVn0CJYqIi698"
+}
+
+---------------------
+Request:
+
+curl --location 'http://localhost:8080/api/user/me' \
+--header 'Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJhbnVAZ21haWwuY29tIiwiaWF0IjoxNzY2NjM3MzcyLCJleHAiOjE3NjY2NDA5NzJ9.jd54ZQzJFrDlt5avPjkB2AVEuTT6BnsVn0CJYqIi698' \
+--header 'Cookie: JSESSIONID=B02C9C4FA6F136DEBFD3C47DCBB71B44'
+
+
+Response:
+{
+    "code": 1002,
+    "message": "Profile fetched successfully",
+    "data": {
+        "email": "anu@gmail.com",
+        "name": "Anu",
+        "mobileNumber": null,
+        "dob": "1985-06-11",
+        "age": 40,
+        "gender": "FEMALE",
+        "country": null,
+        "location": null,
+        "profilePic": null,
+        "createdAt": "2025-12-25T10:05:59.505801",
+        "updatedAt": "2025-12-25T10:05:59.505801"
+    }
+}
+
+-----------------------
+Request:
+curl --location --request PUT 'http://localhost:8080/api/user/profile' \
+--header 'Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJrYXVzaGlrQGdtYWlsLmNvbSIsImlhdCI6MTc2NjYzNTQ0MywiZXhwIjoxNzY2NjM5MDQzfQ.fc6O9eFDQPMW_srUpyHaXXVCW2d0I7Zmo0VKvS8f-1Y' \
+--header 'Content-Type: application/json' \
+--header 'Cookie: JSESSIONID=F289FFE81BEC8FBD703D10E183C9CC22' \
+--data '{
+  "name": "Kaushik Prasad",
+  "mobileNumber": "9876543210",
+  "dob": "1995-06-15",
+    "gender": "MALE",
+  "country": "India",
+  "location": "Delhi"
+}'
+
+Response:
+{
+    "code": 1003,
+    "message": "Profile updated successfully",
+    "data": null
+}
+
+------------------
+Request:
+curl --location --request PUT 'http://localhost:8080/api/user/password' \
+--header 'Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJzYXRpc2hAZ21haWwuY29tIiwiaWF0IjoxNzY2NjA0MDUwLCJleHAiOjE3NjY2MDc2NTB9.VTzAPQS9mrAPGueMNux0wuoj8fuKtVrnPOhARXRT46g' \
+--header 'Content-Type: application/json' \
+--header 'Cookie: JSESSIONID=348FFC4F52EDFCC5C078944CDE96D4C9' \
+--data-raw '{
+  "oldPassword": "password123",
+  "newPassword": "newPassword123"
+}'
+
+
+Response:
+{
+    "code": 1004,
+    "message": "Password updated successfully",
+    "data": null
+}
+
+------------------------
+Request:
+curl --location 'http://localhost:8080/api/user/profile-pic' \
+--header 'Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJrYXVzaGlrQGdtYWlsLmNvbSIsImlhdCI6MTc2NjYzNTQ0MywiZXhwIjoxNzY2NjM5MDQzfQ.fc6O9eFDQPMW_srUpyHaXXVCW2d0I7Zmo0VKvS8f-1Y' \
+--header 'Cookie: JSESSIONID=DF4F95244002A82088889B422166718E' \
+--form 'file=@"/C:/Users/prasa/Downloads/pexels-optical-chemist-340351297-31986005.jpg"'
+
+Response:
+{
+    "code": 1005,
+    "message": "Profile picture uploaded successfully",
+    "data": null
+}
+
+-----------------------
+Request:
+curl --location 'http://localhost:8080/api/user/profile-pic' \
+--header 'Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJrYXVzaGlrQGdtYWlsLmNvbSIsImlhdCI6MTc2NjYzNTQ0MywiZXhwIjoxNzY2NjM5MDQzfQ.fc6O9eFDQPMW_srUpyHaXXVCW2d0I7Zmo0VKvS8f-1Y' \
+--header 'Cookie: JSESSIONID=6654621FE80DF6D533E798C2884B1765'
+
+
+
+
+Optional NEXT Improvements (Production Level)
+
+If you want, next I can:
+1️⃣ Replace RuntimeException with custom exceptions + error codes
+2️⃣ Move file storage to AWS S3
+3️⃣ Add unit tests for UserController
+4️⃣ Add @PreAuthorize role-based access
+5️⃣ Add refresh token + logout blacklist
