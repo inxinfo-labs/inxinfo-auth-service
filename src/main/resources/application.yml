@@ -8,21 +8,18 @@ spring:
     hibernate:
       ddl-auto: update
     show-sql: true
+
   security:
     oauth2:
       client:
         registration:
-            google:
-               client-id: YOUR_CLIENT_ID
-               client-secret: YOUR_SECRET
-               scope:
-                 - email
-                 - profile
-  servlet:
-    multipart:
-      max-file-size: 2MB
-      max-request-size: 2MB
-                
+          google:
+            client-id: YOUR_LOCAL_CLIENT_ID
+            client-secret: YOUR_LOCAL_SECRET
+            scope:
+              - email
+              - profile
+
 app:
   upload:
-    profile-pic-path: uploads/profile-pics			   
+    profile-pic-path: uploads/profile-pics
