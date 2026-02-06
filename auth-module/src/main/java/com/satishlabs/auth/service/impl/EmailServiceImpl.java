@@ -1,0 +1,142 @@
+package com.satishlabs.auth.service.impl;
+
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.mail.SimpleMailMessage;
+import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.stereotype.Service;
+
+import com.satishlabs.auth.service.EmailService;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
+@Service
+@RequiredArgsConstructor
+@Slf4j
+public class EmailServiceImpl implements EmailService {
+
+    private final JavaMailSender mailSender;
+
+    @Value("${spring.mail.username:noreply@inxinfo.com}")
+    private String fromEmail;
+
+    @Value("${app.mail.enabled:true}")
+    private boolean mailEnabled;
+
+    @Override
+    public void sendWelcomeEmail(String to, String name) {
+        if (!mailEnabled) {
+            log.info("Mail disabled - would send welcome email to: {}", to);
+            return;
+        }
+
+        try {
+            SimpleMailMessage message = new SimpleMailMessage();
+            message.setFrom(fromEmail);
+            message.setTo(to);
+            message.setSubject("Welcome to INXINFO Labs!");
+            message.setText(String.format(
+                "Dear %s,\n\n" +
+                "Welcome to INXINFO Labs!\n\n" +
+                "We're excited to have you on board. Your account has been successfully created.\n\n" +
+                "You can now access all our services including:\n" +
+                "- Puja Booking Services\n" +
+                "- Pandit Booking\n" +
+                "- Order Management\n\n" +
+                "If you have any questions, feel free to contact our support team.\n\n" +
+                "Best regards,\n" +
+                "INXINFO Labs Team",
+                name
+            ));
+            mailSender.send(message);
+            log.info("Welcome email sent to: {}", to);
+        } catch (Exception e) {
+            log.error("Failed to send welcome email to: {}", to, e);
+        }
+    }
+
+    @Override
+    public void sendPasswordResetEmail(String to, String resetToken) {
+        if (!mailEnabled) {
+            log.info("Mail disabled - would send password reset email to: {}", to);
+            return;
+        }
+
+        try {
+            SimpleMailMessage message = new SimpleMailMessage();
+            message.setFrom(fromEmail);
+            message.setTo(to);
+            message.setSubject("Password Reset Request - INXINFO Labs");
+            message.setText(String.format(
+                "Dear User,\n\n" +
+                "You have requested to reset your password.\n\n" +
+                "Reset Token: %s\n\n" +
+                "Please use this token to reset your password. This token will expire in 1 hour.\n\n" +
+                "If you did not request this, please ignore this email.\n\n" +
+                "Best regards,\n" +
+                "INXINFO Labs Team",
+                resetToken
+            ));
+            mailSender.send(message);
+            log.info("Password reset email sent to: {}", to);
+        } catch (Exception e) {
+            log.error("Failed to send password reset email to: {}", to, e);
+        }
+    }
+
+    @Override
+    public void sendRegistrationConfirmation(String to, String name) {
+        if (!mailEnabled) {
+            log.info("Mail disabled - would send registration confirmation to: {}", to);
+            return;
+        }
+
+        try {
+            SimpleMailMessage message = new SimpleMailMessage();
+            message.setFrom(fromEmail);
+            message.setTo(to);
+            message.setSubject("Registration Confirmed - INXINFO Labs");
+            message.setText(String.format(
+                "Dear %s,\n\n" +
+                "Thank you for registering with INXINFO Labs!\n\n" +
+                "Your registration has been confirmed. You can now log in and start using our services.\n\n" +
+                "Best regards,\n" +
+                "INXINFO Labs Team",
+                name
+            ));
+            mailSender.send(message);
+            log.info("Registration confirmation email sent to: {}", to);
+        } catch (Exception e) {
+            log.error("Failed to send registration confirmation email to: {}", to, e);
+        }
+    }
+
+    @Override
+    public void sendOrderConfirmation(String to, String orderNumber, String orderDetails) {
+        if (!mailEnabled) {
+            log.info("Mail disabled - would send order confirmation to: {}", to);
+            return;
+        }
+
+        try {
+            SimpleMailMessage message = new SimpleMailMessage();
+            message.setFrom(fromEmail);
+            message.setTo(to);
+            message.setSubject("Order Confirmation - INXINFO Labs");
+            message.setText(String.format(
+                "Dear Customer,\n\n" +
+                "Your order has been confirmed!\n\n" +
+                "Order Number: %s\n\n" +
+                "Order Details:\n%s\n\n" +
+                "Thank you for your business!\n\n" +
+                "Best regards,\n" +
+                "INXINFO Labs Team",
+                orderNumber, orderDetails
+            ));
+            mailSender.send(message);
+            log.info("Order confirmation email sent to: {}", to);
+        } catch (Exception e) {
+            log.error("Failed to send order confirmation email to: {}", to, e);
+        }
+    }
+}
