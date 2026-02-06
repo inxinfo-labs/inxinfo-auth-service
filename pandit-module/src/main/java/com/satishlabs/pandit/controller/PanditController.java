@@ -24,6 +24,7 @@ import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequestMapping("/api/pandit")
+@CrossOrigin(origins = "http://localhost:3000/")
 @RequiredArgsConstructor
 public class PanditController {
 

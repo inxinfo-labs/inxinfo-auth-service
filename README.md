@@ -12,7 +12,8 @@ inxinfo-auth-service/
 ├── auth-module/          # Authentication & Authorization module
 ├── puja-module/          # Puja types and booking module
 ├── order-module/         # Orders and order items module
-└── pandit-module/        # Pandit ji booking module
+├── pandit-module/        # Pandit ji booking module
+└── app-runner/           # Runnable app (use this to run; includes all modules)
 ```
 
 ## 🚀 Features
@@ -106,13 +107,15 @@ spring:
 mvn clean install
 ```
 
-2. **Run the application:**
+2. **Run the application (use app-runner so all APIs work):**
 ```bash
-mvn spring-boot:run
+mvn spring-boot:run -pl app-runner
 ```
+Or from `app-runner` directory: `mvn spring-boot:run`
 
 Or run from your IDE by executing the main class:
-- `com.satishlabs.auth.UserLoginRegistrationApplication`
+- **`com.satishlabs.InxinfoApplication`** (in app-runner) — recommended; includes Puja, Pandit, Order, and Auth.
+- `com.satishlabs.auth.UserLoginRegistrationApplication` (auth-module only; /api/puja and /api/pandit will not be available).
 
 3. **Access the application:**
 - API Base URL: `http://localhost:8080/api`

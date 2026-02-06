@@ -23,10 +23,21 @@ public class EmailServiceImpl implements EmailService {
     @Value("${app.mail.enabled:true}")
     private boolean mailEnabled;
 
+    // Check if mail sender is properly configured
+    private boolean isMailConfigured() {
+        if (!mailEnabled) {
+            return false;
+        }
+        // Check if fromEmail is not the default placeholder
+        return fromEmail != null && 
+               !fromEmail.equals("your-email@gmail.com") && 
+               !fromEmail.equals("noreply@inxinfo.com");
+    }
+
     @Override
     public void sendWelcomeEmail(String to, String name) {
-        if (!mailEnabled) {
-            log.info("Mail disabled - would send welcome email to: {}", to);
+        if (!isMailConfigured()) {
+            log.warn("Email service not configured. Set spring.mail.username and spring.mail.password in application.yml");
             return;
         }
 
@@ -51,14 +62,15 @@ public class EmailServiceImpl implements EmailService {
             mailSender.send(message);
             log.info("Welcome email sent to: {}", to);
         } catch (Exception e) {
-            log.error("Failed to send welcome email to: {}", to, e);
+            log.error("Failed to send welcome email to: {}. Error: {}", to, e.getMessage());
+            // Don't throw exception - email failure shouldn't break registration
         }
     }
 
     @Override
     public void sendPasswordResetEmail(String to, String resetToken) {
-        if (!mailEnabled) {
-            log.info("Mail disabled - would send password reset email to: {}", to);
+        if (!isMailConfigured()) {
+            log.warn("Email service not configured. Cannot send password reset email.");
             return;
         }
 
@@ -80,14 +92,14 @@ public class EmailServiceImpl implements EmailService {
             mailSender.send(message);
             log.info("Password reset email sent to: {}", to);
         } catch (Exception e) {
-            log.error("Failed to send password reset email to: {}", to, e);
+            log.error("Failed to send password reset email to: {}. Error: {}", to, e.getMessage());
         }
     }
 
     @Override
     public void sendRegistrationConfirmation(String to, String name) {
-        if (!mailEnabled) {
-            log.info("Mail disabled - would send registration confirmation to: {}", to);
+        if (!isMailConfigured()) {
+            log.warn("Email service not configured. Skipping registration confirmation email.");
             return;
         }
 
@@ -107,14 +119,14 @@ public class EmailServiceImpl implements EmailService {
             mailSender.send(message);
             log.info("Registration confirmation email sent to: {}", to);
         } catch (Exception e) {
-            log.error("Failed to send registration confirmation email to: {}", to, e);
+            log.error("Failed to send registration confirmation email to: {}. Error: {}", to, e.getMessage());
         }
     }
 
     @Override
     public void sendOrderConfirmation(String to, String orderNumber, String orderDetails) {
-        if (!mailEnabled) {
-            log.info("Mail disabled - would send order confirmation to: {}", to);
+        if (!isMailConfigured()) {
+            log.warn("Email service not configured. Skipping order confirmation email.");
             return;
         }
 
@@ -136,7 +148,7 @@ public class EmailServiceImpl implements EmailService {
             mailSender.send(message);
             log.info("Order confirmation email sent to: {}", to);
         } catch (Exception e) {
-            log.error("Failed to send order confirmation email to: {}", to, e);
+            log.error("Failed to send order confirmation email to: {}. Error: {}", to, e.getMessage());
         }
     }
 }

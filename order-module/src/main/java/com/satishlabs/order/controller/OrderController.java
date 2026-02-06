@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.*;
 import com.satishlabs.auth.dto.response.ApiResponse;
 import com.satishlabs.auth.entity.User;
 import com.satishlabs.auth.exception.ResourceNotFoundException;
+import com.satishlabs.auth.exception.UnauthorizedException;
 import com.satishlabs.auth.repository.UserRepository;
 import com.satishlabs.order.dto.request.CreateOrderRequest;
 import com.satishlabs.order.dto.response.OrderResponse;
@@ -20,6 +21,7 @@ import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequestMapping("/api/orders")
+@CrossOrigin(origins = "http://localhost:3000/")
 @RequiredArgsConstructor
 public class OrderController {
 
@@ -28,11 +30,15 @@ public class OrderController {
 
     private Long getUserIdFromAuthentication(Authentication authentication) {
         if (authentication == null || authentication.getPrincipal() == null) {
-            throw new ResourceNotFoundException("User not authenticated");
+            throw new UnauthorizedException("User not authenticated");
         }
-        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+        Object principal = authentication.getPrincipal();
+        if (!(principal instanceof UserDetails)) {
+            throw new UnauthorizedException("Invalid authentication");
+        }
+        UserDetails userDetails = (UserDetails) principal;
         User user = userRepository.findByEmail(userDetails.getUsername())
-                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+                .orElseThrow(() -> new UnauthorizedException("User not found"));
         return user.getId();
     }
 

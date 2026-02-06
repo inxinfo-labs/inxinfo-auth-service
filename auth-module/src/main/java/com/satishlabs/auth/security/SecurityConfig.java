@@ -46,8 +46,12 @@ public class SecurityConfig {
                             "/api/user/profile-pic"
                     ).permitAll()
                     .requestMatchers("/api/auth/**", "/oauth2/**", "/login/**").permitAll()
+                    // Public catalog endpoints
                     .requestMatchers("/api/puja", "/api/puja/**").permitAll()
                     .requestMatchers("/api/pandit", "/api/pandit/**").permitAll()
+                    // Order endpoints require authentication
+                    .requestMatchers("/api/orders/**").authenticated()
+                    // Admin endpoints require ADMIN role
                     .requestMatchers("/api/admin/**").hasRole("ADMIN")
                     .anyRequest().authenticated()
             )

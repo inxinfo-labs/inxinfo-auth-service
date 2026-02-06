@@ -22,6 +22,7 @@ import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequestMapping("/api/puja")
+@CrossOrigin(origins = "http://localhost:3000/")
 @RequiredArgsConstructor
 public class PujaController {
 
