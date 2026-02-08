@@ -18,10 +18,12 @@
 	<description>Multi-module Spring Boot project for Puja Store application</description>
 	
 	<modules>
-		<module>auth-module</module>
-		<module>puja-module</module>
-		<module>order-module</module>
-		<module>pandit-module</module>
+		<module>auth-service</module>
+		<module>puja-service</module>
+		<module>pandit-service</module>
+		<module>order-service</module>
+		<module>api-gateway</module>
+		<module>notification-service</module>
 		<module>app-runner</module>
 	</modules>
 	

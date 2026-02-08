@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Puja Store — Architecture, API & Run/Test</title>
+  <style>
+    @media print { body { max-width: 100%; } pre { white-space: pre-wrap; } }
+    body { font-family: system-ui, sans-serif; max-width: 800px; margin: 2rem auto; padding: 1rem; line-height: 1.5; color: #222; }
+    h1 { font-size: 1.5rem; border-bottom: 2px solid #0d9488; padding-bottom: 0.5rem; }
+    h2 { font-size: 1.25rem; margin-top: 2rem; }
+    h3 { font-size: 1.1rem; margin-top: 1.5rem; }
+    table { border-collapse: collapse; width: 100%; margin: 1rem 0; }
+    th, td { border: 1px solid #ccc; padding: 0.5rem; text-align: left; }
+    th { background: #f1f5f9; }
+    pre, code { background: #f1f5f9; padding: 0.2rem 0.4rem; border-radius: 4px; font-size: 0.9rem; }
+    pre { padding: 1rem; overflow-x: auto; }
+    .note { background: #fef3c7; padding: 0.75rem; border-radius: 6px; margin: 1rem 0; }
+    hr { margin: 2rem 0; border: none; border-top: 1px solid #e2e8f0; }
+  </style>
+</head>
+<body>
+
+<h1>Puja Store — Architecture, API Documentation & Run/Test</h1>
+<p><strong>Single reference.</strong> Use browser <strong>Print → Save as PDF</strong> to generate one PDF. You can replace the Architecture section with your diagram by editing this file or pasting your diagram image.</p>
+
+<hr>
+
+<h2>Part 1 — Architecture</h2>
+
+<h3>Distributed Microservices</h3>
+<ul>
+  <li><strong>Frontend (React + MUI)</strong> talks only to <strong>API Gateway</strong> at <code>http://localhost:8080/api</code>. No direct backend calls.</li>
+  <li>Each service runs on its own port and is independently deployable. Communication: REST (gateway proxies; Order calls Pandit and Notification for Saga).</li>
+</ul>
+
+<h3>Services & Ports</h3>
+<table>
+  <tr><th>Service</th><th>Port</th><th>Responsibility</th></tr>
+  <tr><td>API Gateway</td><td>8080</td><td>Single entry, CORS, JWT, path-based routing</td></tr>
+  <tr><td>Auth Service</td><td>8081</td><td>Login/Register, OAuth2, JWT, user profile</td></tr>
+  <tr><td>Puja Service</td><td>8082</td><td>Puja catalog & booking, /api/puja/**</td></tr>
+  <tr><td>Pandit Service</td><td>8083</td><td>Pandit profiles, availability, reserve/release, /api/pandit/**</td></tr>
+  <tr><td>Order Service</td><td>8084</td><td>Order lifecycle, Saga orchestrator, /api/orders/**</td></tr>
+  <tr><td>Notification</td><td>8085</td><td>SMTP; all mails → satish.prasad@inxinfo.com</td></tr>
+</table>
+
+<h3>Gateway Routing</h3>
+<table>
+  <tr><th>Path</th><th>Service</th><th>Port</th></tr>
+  <tr><td>/api/auth/**</td><td>Auth</td><td>8081</td></tr>
+  <tr><td>/api/user/**</td><td>Auth</td><td>8081</td></tr>
+  <tr><td>/api/puja/**</td><td>Puja</td><td>8082</td></tr>
+  <tr><td>/api/pandit/**</td><td>Pandit</td><td>8083</td></tr>
+  <tr><td>/api/orders/**</td><td>Order</td><td>8084</td></tr>
+  <tr><td>/api/notify/**</td><td>Notification</td><td>8085</td></tr>
+</table>
+
+<h3>Saga (Order Service as Orchestrator)</h3>
+<ol>
+  <li><strong>Create Order</strong> — Order Service persists order.</li>
+  <li><strong>Reserve Pandit</strong> — Order calls Pandit <code>POST /pandit/reserve</code>.</li>
+  <li><strong>Confirm Puja</strong> — Order status → CONFIRMED.</li>
+  <li><strong>Send Notification</strong> — Order calls Notification <code>POST /notify/email</code>.</li>
+</ol>
+<p><strong>Compensation (on failure):</strong> Order calls <code>POST /pandit/release</code> and sets order to CANCELLED.</p>
+<pre>[Frontend] → [API Gateway :8080] → Auth(:8081), Puja(:8082), Pandit(:8083), Order(:8084), Notification(:8085)
+                                      Order → Pandit (reserve/release), Order → Notification (email)</pre>
+
+<hr>
+
+<h2>Part 2 — API Documentation</h2>
+<p><strong>Base URL:</strong> <code>http://localhost:8080/api</code>. <strong>Protected routes:</strong> <code>Authorization: Bearer &lt;JWT&gt;</code>, <code>Content-Type: application/json</code>.</p>
+
+<h3>Auth</h3>
+<ul>
+  <li><strong>POST /api/auth/register</strong> — Body: email, password, name. Response: accessToken. cURL: <code>curl -X POST http://localhost:8080/api/auth/register -H "Content-Type: application/json" -d '{"email":"u@e.com","password":"s","name":"U"}'</code></li>
+  <li><strong>POST /api/auth/login</strong> — Body: email, password. Response: accessToken. cURL: <code>curl -X POST http://localhost:8080/api/auth/login -H "Content-Type: application/json" -d '{"email":"u@e.com","password":"s"}'</code></li>
+  <li><strong>GET /api/user/me</strong> — JWT required. Response: code, message, data (profile). cURL: <code>curl -X GET http://localhost:8080/api/user/me -H "Authorization: Bearer &lt;JWT&gt;"</code></li>
+</ul>
+
+<h3>Puja</h3>
+<ul>
+  <li><strong>GET /api/puja</strong> — List puja types. <code>curl -X GET http://localhost:8080/api/puja</code></li>
+  <li><strong>GET /api/puja/{id}</strong> — <code>curl -X GET http://localhost:8080/api/puja/1</code></li>
+  <li><strong>POST /api/puja/book</strong> — JWT required. Body: pujaTypeId, bookingDate, bookingTime, address, city, pincode, contactPhone, etc.</li>
+</ul>
+
+<h3>Pandit</h3>
+<ul>
+  <li><strong>GET /api/pandit/available</strong> — <code>curl -X GET http://localhost:8080/api/pandit/available</code></li>
+  <li><strong>GET /api/pandit/{id}</strong>, <strong>GET /api/pandit/{id}/availability?date=YYYY-MM-DD</strong></li>
+  <li><strong>POST /api/pandit/reserve</strong> (Saga) — Body: orderId, panditId.</li>
+  <li><strong>POST /api/pandit/release</strong> (Saga) — Body: orderId.</li>
+</ul>
+
+<h3>Order</h3>
+<ul>
+  <li><strong>POST /api/orders</strong> — JWT required. Body: items[], shippingAddress, city, pincode, contactPhone, panditId? (triggers Saga). <code>curl -X POST http://localhost:8080/api/orders -H "Authorization: Bearer &lt;JWT&gt;" -H "Content-Type: application/json" -d '{"items":[{"pujaTypeId":1,"quantity":1}],"shippingAddress":"...","city":"...","pincode":"...","contactPhone":"...","panditId":1}'</code></li>
+  <li><strong>GET /api/orders</strong>, <strong>GET /api/orders/{id}</strong>, <strong>POST /api/orders/{id}/payment/confirm</strong> — JWT required.</li>
+</ul>
+
+<h3>Notification</h3>
+<ul>
+  <li><strong>POST /api/notify/email</strong> — Body: to, subject, body. All mails redirected to satish.prasad@inxinfo.com. <code>curl -X POST http://localhost:8080/api/notify/email -H "Content-Type: application/json" -d '{"to":"u@e.com","subject":"Test","body":"Hi"}'</code></li>
+</ul>
+
+<hr>
+
+<h2>Part 3 — Run & Test</h2>
+<p><strong>Backend:</strong> Java 21, Maven, MySQL (authdb). Start in order: Auth (8081), Puja (8082), Pandit (8083), Order (8084), Notification (8085), Gateway (8080). Commands: <code>mvn spring-boot:run -pl auth-module -Dspring-boot.run.profiles=gateway</code>; <code>mvn spring-boot:run -pl puja-service</code>; <code>mvn spring-boot:run -pl pandit-service</code>; <code>mvn spring-boot:run -pl order-service</code>; <code>mvn spring-boot:run -pl notification-service</code>; <code>mvn spring-boot:run -pl api-gateway</code>.</p>
+<p><strong>Saga test:</strong> Login → POST /api/orders with panditId → verify order + reserve + notification; on failure, order CANCELLED, pandit released.</p>
+<p><strong>Monolith:</strong> <code>mvn spring-boot:run -pl app-runner</code> (single app 8080, context /api).</p>
+<p><strong>Frontend:</strong> <code>REACT_APP_API_URL=http://localhost:8080/api</code>, <code>npm install && npm start</code> → http://localhost:3000.</p>
+
+<div class="note">To produce one PDF: open this HTML in a browser → File → Print → Save as PDF. Or use Markdown PDF / pandoc on <code>ARCHITECTURE_API_AND_RUN_TEST.md</code>.</div>
+
+</body>
+</html>

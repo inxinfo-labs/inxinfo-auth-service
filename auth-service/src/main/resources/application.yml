@@ -1,0 +1,41 @@
+# Auth service – distributed mode. Run: mvn spring-boot:run -pl auth-service
+# Prerequisite: CREATE DATABASE auth_db;
+server:
+  port: 8081
+
+spring:
+  application:
+    name: auth-service
+  datasource:
+    url: jdbc:mysql://localhost:3306/auth_db
+    username: root
+    password: root
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: ${MAIL_USERNAME:}
+    password: ${MAIL_PASSWORD:}
+    properties:
+      mail.smtp.auth: true
+      mail.smtp.starttls.enable: true
+
+app:
+  upload:
+    profile-pic-path: uploads/profile-pics
+  mail:
+    enabled: true
+  frontend:
+    url: ${FRONTEND_URL:http://localhost:3000}
+
+# JWT secret – must match api-gateway
+jwt:
+  secret: ${JWT_SECRET:satishlabs-secret-key-satishlabs-secret-key}
+
+logging:
+  level:
+    com.satishlabs.auth: INFO

@@ -1,0 +1,27 @@
+server:
+  port: 8082
+
+auth:
+  service:
+    url: http://localhost:8081
+
+app:
+  upload:
+    profile-pic-path: uploads/profile-pics
+
+spring:
+  application:
+    name: puja-service
+  datasource:
+    url: jdbc:mysql://localhost:3306/c
+    username: root
+    password: root
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+
+logging:
+  level:
+    com.satishlabs: INFO

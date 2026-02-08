@@ -10,9 +10,9 @@
 		<version>0.0.1-SNAPSHOT</version>
 	</parent>
 
-	<artifactId>app-runner</artifactId>
-	<name>app-runner</name>
-	<description>Monolith runner – depends on auth, puja, pandit, order services (all code in one JVM).</description>
+	<artifactId>puja-service</artifactId>
+	<name>puja-service</name>
+	<description>Puja service (port 8082) – puja code + runnable. Distributed: puja_db.</description>
 
 	<dependencies>
 		<dependency>
@@ -21,23 +21,30 @@
 			<version>${project.version}</version>
 		</dependency>
 		<dependency>
-			<groupId>com.satishlabs</groupId>
-			<artifactId>puja-service</artifactId>
-			<version>${project.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>com.satishlabs</groupId>
-			<artifactId>pandit-service</artifactId>
-			<version>${project.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>com.satishlabs</groupId>
-			<artifactId>order-service</artifactId>
-			<version>${project.version}</version>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-data-jpa</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-web</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-validation</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>com.mysql</groupId>
+			<artifactId>mysql-connector-j</artifactId>
+			<scope>runtime</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.projectlombok</groupId>
+			<artifactId>lombok</artifactId>
+			<optional>true</optional>
+		</dependency>
+		<dependency>
+			<groupId>org.mapstruct</groupId>
+			<artifactId>mapstruct</artifactId>
 		</dependency>
 	</dependencies>
 
@@ -47,7 +54,8 @@
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
 				<configuration>
-					<mainClass>com.satishlabs.InxinfoApplication</mainClass>
+					<classifier>exec</classifier>
+					<mainClass>com.satishlabs.puja.runner.PujaServiceRunner</mainClass>
 					<excludes>
 						<exclude>
 							<groupId>org.projectlombok</groupId>

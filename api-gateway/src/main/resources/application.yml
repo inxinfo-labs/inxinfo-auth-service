@@ -1,0 +1,20 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: api-gateway
+
+gateway:
+  auth-service-url: http://localhost:8081
+  puja-service-url: http://localhost:8082
+  pandit-service-url: http://localhost:8083
+  order-service-url: http://localhost:8084
+  notification-service-url: http://localhost:8085
+  # Must match auth-module JWT secret
+  jwt:
+    secret: satishlabs-secret-key-satishlabs-secret-key
+
+logging:
+  level:
+    com.satishlabs.gateway: DEBUG
