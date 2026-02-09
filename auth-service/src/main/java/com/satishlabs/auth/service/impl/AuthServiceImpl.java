@@ -64,6 +64,10 @@ public class AuthServiceImpl implements AuthService {
 		String name = (firstName + " " + lastName).trim();
 		if (name.isEmpty()) name = request.getEmail();
 
+		Role role = Role.USER;
+		if (request.getRole() != null && "PANDIT".equalsIgnoreCase(request.getRole().trim())) {
+			role = Role.PANDIT;
+		}
 		User user = User.builder()
 				.email(email)
 				.password(passwordEncoder.encode(request.getPassword()))
@@ -75,7 +79,7 @@ public class AuthServiceImpl implements AuthService {
 				.gender(request.getGender())
 				.country(request.getCountry() != null ? request.getCountry().trim() : null)
 				.location(request.getLocation() != null ? request.getLocation().trim() : null)
-				.role(Role.USER)
+				.role(role)
 				.provider(AuthProvider.LOCAL)
 				.enabled(true)
 				.build();

@@ -170,6 +170,8 @@ public class PujaServiceImpl implements PujaService {
                 .durationMinutes(pujaType.getDurationMinutes())
                 .category(pujaType.getCategory())
                 .active(pujaType.isActive())
+                .createdAt(pujaType.getCreatedAt())
+                .updatedAt(pujaType.getUpdatedAt())
                 .build();
     }
 

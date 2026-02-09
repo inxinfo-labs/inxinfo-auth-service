@@ -287,6 +287,19 @@ public class PanditServiceImpl implements PanditService {
     }
 
     @Override
+    @Transactional
+    public PanditBookingResponse confirmBookingPayment(Long bookingId, Long userId) {
+        PanditBooking booking = panditBookingRepository.findById(bookingId)
+                .orElseThrow(() -> new ResourceNotFoundException("Booking not found with id: " + bookingId));
+        if (!booking.getUserId().equals(userId)) {
+            throw new ResourceNotFoundException("Booking not found");
+        }
+        booking.setStatus(BookingStatus.CONFIRMED);
+        PanditBooking updated = panditBookingRepository.save(booking);
+        return mapToPanditBookingResponse(updated, null);
+    }
+
+    @Override
     public Long reserve(ReserveRequest request) {
         Pandit pandit = panditRepository.findById(request.getPanditId())
                 .orElseThrow(() -> new ResourceNotFoundException("Pandit not found with id: " + request.getPanditId()));
@@ -327,6 +340,8 @@ public class PanditServiceImpl implements PanditService {
                 .specializations(pandit.getSpecializations())
                 .status(pandit.getStatus())
                 .active(pandit.isActive())
+                .createdAt(pandit.getCreatedAt())
+                .updatedAt(pandit.getUpdatedAt())
                 .build();
     }
 

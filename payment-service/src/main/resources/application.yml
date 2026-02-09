@@ -1,0 +1,24 @@
+server:
+  port: 8086
+
+spring:
+  application:
+    name: payment-service
+  datasource:
+    url: jdbc:mysql://localhost:3306/paymentdb
+    username: root
+    password: root
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+
+# Razorpay – never expose key_secret to frontend
+razorpay:
+  key_id: ${RAZORPAY_KEY_ID:}
+  key_secret: ${RAZORPAY_KEY_SECRET:}
+
+logging:
+  level:
+    com.satishlabs.payment: DEBUG

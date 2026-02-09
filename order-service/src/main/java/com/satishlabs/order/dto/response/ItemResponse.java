@@ -16,7 +16,11 @@ public class ItemResponse {
     private Long id;
     private String name;
     private String description;
+    private String category;
     private BigDecimal price;
+    private BigDecimal discountPrice;
+    private Integer stock;
+    private String images;
     private String sku;
     private boolean active;
     private LocalDateTime createdAt;

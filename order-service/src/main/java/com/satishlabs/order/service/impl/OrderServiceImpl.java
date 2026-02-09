@@ -1,5 +1,7 @@
 package com.satishlabs.order.service.impl;
 
+import org.springframework.data.domain.Sort;
+
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -29,8 +31,17 @@ import com.satishlabs.puja.entity.PujaType;
 import com.satishlabs.puja.repository.PujaTypeRepository;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.MediaType;
+import org.springframework.http.HttpHeaders;
+import org.springframework.web.client.RestTemplate;
 
+import java.util.Map;
+
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional
@@ -41,6 +52,12 @@ public class OrderServiceImpl implements OrderService {
     private final PujaTypeRepository pujaTypeRepository;
     private final ItemRepository itemRepository;
     private final SagaOrchestrator sagaOrchestrator;
+    private final RestTemplate restTemplate;
+
+    @Value("${order.saga.notify-url:http://localhost:8085}")
+    private String notifyUrl;
+    @Value("${order.saga.admin-email:}")
+    private String adminEmail;
 
     @Override
     public OrderResponse createOrder(CreateOrderRequest request, Long userId, String authorizationHeader) {
@@ -106,6 +123,8 @@ public class OrderServiceImpl implements OrderService {
         order.setTotalAmount(totalAmount);
         Order savedOrder = orderRepository.save(order);
 
+        notifyAdminNewOrder(savedOrder, authorizationHeader);
+
         if (request.getPanditId() != null) {
             try {
                 sagaOrchestrator.execute(request, userId, savedOrder);
@@ -120,6 +139,14 @@ public class OrderServiceImpl implements OrderService {
     @Transactional(readOnly = true)
     public List<OrderResponse> getUserOrders(Long userId, String authorizationHeader) {
         return orderRepository.findByUserIdOrderByCreatedAtDesc(userId).stream()
+                .map(o -> mapToOrderResponse(o, authorizationHeader))
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<OrderResponse> getAllOrdersForAdmin(String authorizationHeader) {
+        return orderRepository.findAll(Sort.by(Sort.Direction.DESC, "createdAt")).stream()
                 .map(o -> mapToOrderResponse(o, authorizationHeader))
                 .collect(Collectors.toList());
     }
@@ -235,5 +262,27 @@ public class OrderServiceImpl implements OrderService {
                 .unitPrice(opi.getUnitPrice())
                 .subtotal(opi.getSubtotal())
                 .build();
+    }
+
+    private void notifyAdminNewOrder(Order order, String authorizationHeader) {
+        if (adminEmail == null || adminEmail.isBlank()) return;
+        try {
+            String userName = authClient.getUserById(order.getUserId(), authorizationHeader)
+                    .map(u -> u.getName() != null ? u.getName() : u.getEmail())
+                    .orElse("User #" + order.getUserId());
+            String body = "New order " + order.getOrderNumber() + " created by " + userName
+                    + ". Amount: ₹" + order.getTotalAmount() + ". Order ID: " + order.getId();
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            Map<String, String> payload = Map.of(
+                    "to", adminEmail,
+                    "subject", "New order: " + order.getOrderNumber(),
+                    "body", body
+            );
+            restTemplate.postForEntity(notifyUrl + "/notify/email", new HttpEntity<>(payload, headers), Map.class);
+            log.info("Admin notified of new order {}", order.getOrderNumber());
+        } catch (Exception e) {
+            log.warn("Failed to notify admin of new order {}: {}", order.getOrderNumber(), e.getMessage());
+        }
     }
 }

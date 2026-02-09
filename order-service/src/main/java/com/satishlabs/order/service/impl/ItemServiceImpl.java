@@ -47,7 +47,11 @@ public class ItemServiceImpl implements ItemService {
         Item item = Item.builder()
                 .name(request.getName())
                 .description(request.getDescription())
+                .category(request.getCategory())
                 .price(request.getPrice())
+                .discountPrice(request.getDiscountPrice())
+                .stock(request.getStock() != null ? request.getStock() : 0)
+                .images(request.getImages())
                 .sku(request.getSku())
                 .active(request.getActive() != null ? request.getActive() : true)
                 .build();
@@ -61,7 +65,11 @@ public class ItemServiceImpl implements ItemService {
                 .orElseThrow(() -> new ResourceNotFoundException("Item not found with id: " + id));
         item.setName(request.getName());
         item.setDescription(request.getDescription());
+        if (request.getCategory() != null) item.setCategory(request.getCategory());
         item.setPrice(request.getPrice());
+        item.setDiscountPrice(request.getDiscountPrice());
+        if (request.getStock() != null) item.setStock(request.getStock());
+        if (request.getImages() != null) item.setImages(request.getImages());
         if (request.getSku() != null) item.setSku(request.getSku());
         if (request.getActive() != null) item.setActive(request.getActive());
         return toResponse(itemRepository.save(item));
@@ -81,7 +89,11 @@ public class ItemServiceImpl implements ItemService {
                 .id(item.getId())
                 .name(item.getName())
                 .description(item.getDescription())
+                .category(item.getCategory())
                 .price(item.getPrice())
+                .discountPrice(item.getDiscountPrice())
+                .stock(item.getStock() != null ? item.getStock() : 0)
+                .images(item.getImages())
                 .sku(item.getSku())
                 .active(item.isActive())
                 .createdAt(item.getCreatedAt())

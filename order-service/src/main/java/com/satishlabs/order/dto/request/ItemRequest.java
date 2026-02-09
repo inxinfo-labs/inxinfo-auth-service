@@ -14,9 +14,22 @@ public class ItemRequest {
 
     private String description;
 
+    /** One of: Puja Samagri, Idols & Murtis, Incense & Dhoop, etc. */
+    private String category;
+
     @NotNull(message = "Price is required")
     @DecimalMin(value = "0", message = "Price must be >= 0")
     private BigDecimal price;
+
+    @DecimalMin(value = "0", message = "Discount price must be >= 0")
+    private BigDecimal discountPrice;
+
+    @NotNull(message = "Stock is required")
+    @jakarta.validation.constraints.Min(0)
+    private Integer stock = 0;
+
+    /** Comma-separated image URLs */
+    private String images;
 
     private String sku;
 

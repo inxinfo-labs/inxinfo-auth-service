@@ -1,6 +1,7 @@
 package com.satishlabs.puja.dto.response;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
 import com.satishlabs.puja.entity.PujaCategory;
 
@@ -22,4 +23,6 @@ public class PujaTypeResponse {
     private Integer durationMinutes;
     private PujaCategory category;
     private boolean active;
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
 }

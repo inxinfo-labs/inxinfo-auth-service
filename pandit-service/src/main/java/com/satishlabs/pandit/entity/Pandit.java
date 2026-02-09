@@ -54,8 +54,10 @@ public class Pandit {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
+    @Builder.Default
     private PanditStatus status = PanditStatus.AVAILABLE;
 
+    @Builder.Default
     private boolean active = true;
 
     @Column(nullable = false, updatable = false)

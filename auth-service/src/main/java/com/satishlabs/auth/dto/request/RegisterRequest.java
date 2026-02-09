@@ -33,4 +33,6 @@ public class RegisterRequest {
 	private Gender gender;
 	private String country;
 	private String location;
+	/** Optional: "PANDIT" to register as PanditJi; otherwise USER. */
+	private String role;
 }

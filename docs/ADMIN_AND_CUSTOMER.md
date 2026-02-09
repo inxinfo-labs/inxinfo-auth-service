@@ -40,6 +40,12 @@ All admin endpoints require a valid JWT for a user with role **ADMIN**. Send the
 - `PUT /api/admin/puja/{id}` – Update puja type.
 - `DELETE /api/admin/puja/{id}` – Delete puja type.
 
+### Orders (admin)
+
+- `GET /api/admin/orders` – List all orders (all users), with user name, items, total, payment and status.
+- `PATCH /api/admin/orders/{id}` – Update order status (body: `{ "orderStatus": "CONFIRMED" }`).
+- **Admin notification:** Set `ADMIN_EMAIL` in order-service to receive an email when a new order is placed.
+
 ### Users (admin only)
 
 - `GET /api/admin/users` – List all users (for “approve as pandit”, change role, etc.).

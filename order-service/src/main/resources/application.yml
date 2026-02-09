@@ -29,6 +29,8 @@ order:
     enabled: true
     pandit-url: http://localhost:8083
     notify-url: http://localhost:8085
+    # Admin email to notify on new order (e.g. admin@inxinfo.com). Leave blank to disable.
+    admin-email: ${ADMIN_EMAIL:}
 
 logging:
   level:

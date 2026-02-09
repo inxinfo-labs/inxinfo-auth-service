@@ -44,6 +44,7 @@ public class PanditBooking {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
+    @Builder.Default
     private BookingStatus status = BookingStatus.PENDING;
 
     private String address;

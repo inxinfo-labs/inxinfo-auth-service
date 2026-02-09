@@ -15,4 +15,5 @@ public class GatewayProperties {
 	private String panditServiceUrl = "http://localhost:8083";
 	private String orderServiceUrl = "http://localhost:8084";
 	private String notificationServiceUrl = "http://localhost:8085";
+	private String paymentServiceUrl = "http://localhost:8086";
 }

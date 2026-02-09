@@ -1,6 +1,7 @@
 package com.satishlabs.pandit.dto.response;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 
 import com.satishlabs.pandit.entity.PanditStatus;
@@ -30,4 +31,6 @@ public class PanditResponse {
     private List<String> specializations;
     private PanditStatus status;
     private boolean active;
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
 }

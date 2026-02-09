@@ -131,8 +131,14 @@ public class GatewayProxyController {
 		if (path.startsWith("/admin/puja")) {
 			return gatewayProperties.getPujaServiceUrl() + base;
 		}
+		if (path.startsWith("/admin")) {
+			return gatewayProperties.getAuthServiceUrl() + base;
+		}
 		if (path.startsWith("/notify")) {
 			return gatewayProperties.getNotificationServiceUrl() + base;
+		}
+		if (path.startsWith("/payments")) {
+			return gatewayProperties.getPaymentServiceUrl() + base;
 		}
 		return null;
 	}

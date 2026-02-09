@@ -27,6 +27,20 @@ public class Item {
     @Column(nullable = false)
     private BigDecimal price;
 
+    /** Discounted price; if null, use price */
+    private BigDecimal discountPrice;
+
+    @Column(length = 100)
+    private String category;
+
+    /** Stock quantity (inventory) */
+    @Builder.Default
+    private Integer stock = 0;
+
+    /** Comma-separated image URLs or JSON array string */
+    @Column(length = 2000)
+    private String images;
+
     @Column(unique = true, length = 100)
     private String sku;
 

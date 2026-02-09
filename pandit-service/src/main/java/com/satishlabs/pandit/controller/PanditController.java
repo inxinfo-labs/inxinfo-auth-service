@@ -131,6 +131,17 @@ public class PanditController {
         );
     }
 
+    @PostMapping("/bookings/{id}/payment/confirm")
+    public ResponseEntity<ApiResponse<PanditBookingResponse>> confirmBookingPayment(
+            @PathVariable Long id,
+            Authentication authentication) {
+        Long userId = getUserIdFromAuthentication(authentication);
+        return ResponseEntity.ok(
+                new ApiResponse<>(4010, "Booking payment confirmed",
+                        panditService.confirmBookingPayment(id, userId))
+        );
+    }
+
     /** Saga: reserve pandit for order (called by order-service) */
     @PostMapping("/reserve")
     public ResponseEntity<ApiResponse<Long>> reserve(@Valid @RequestBody ReserveRequest request) {

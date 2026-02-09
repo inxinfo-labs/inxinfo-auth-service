@@ -30,6 +30,9 @@ public interface PanditService {
     PanditBookingResponse getBookingById(Long bookingId, Long userId, String authorizationHeader);
     PanditBookingResponse updateBookingStatus(Long bookingId, String status);
 
+    /** Mark booking as CONFIRMED after successful payment. */
+    PanditBookingResponse confirmBookingPayment(Long bookingId, Long userId);
+
     /** Saga: reserve pandit for order (called by order-service) */
     Long reserve(ReserveRequest request);
 
