@@ -1,10 +1,10 @@
 # Distributed Databases Refactoring
 
-This document describes how to move from a **single database** (`authdb`) to **one database per service** (distributed connection), as per the refactoring prompt.
+This document describes how to move from a **single database** to **one database per service** (distributed connection).
 
 ## Current State
 
-All modules (auth, order, pandit, puja) currently connect to one MySQL database: `authdb`, with tables:
+All modules (auth, order, pandit, puja, payment) use **PostgreSQL**. Monolith (app-runner) uses one database (e.g. `inxinfo`). Tables:
 
 - `users`, (auth)
 - `orders`, `order_items`, (order)
@@ -27,44 +27,51 @@ All modules (auth, order, pandit, puja) currently connect to one MySQL database:
 - Cross-references use **IDs only** (e.g. `user_id`, `pandit_id`). No direct DB access from one service to another’s DB.
 - Inter-service communication is via **REST APIs** or events (e.g. Auth exposes `/user/me` or `/users/{id}` for others to call).
 
-## Step 1: Create the Four Databases in MySQL
+## Step 1: Create the Four Databases in PostgreSQL
 
-Run in MySQL:
+Run in PostgreSQL (e.g. `psql`):
 
 ```sql
-CREATE DATABASE auth_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-CREATE DATABASE order_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-CREATE DATABASE pandit_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-CREATE DATABASE puja_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+CREATE DATABASE auth_db;
+CREATE DATABASE order_db;
+CREATE DATABASE pandit_db;
+CREATE DATABASE puja_db;
+CREATE DATABASE payment_db;
 ```
 
-## Step 2: Migrate Data (If You Already Have Data in `authdb`)
+## Step 2: Migrate Data (If You Already Have Data)
 
-1. **Export** tables from `authdb` into SQL files per domain (e.g. `users`, `password_reset_tokens` → `auth_db`; `orders`, `order_items` → `order_db`; etc.).
+1. **Export** tables from the single DB into SQL files per domain (e.g. `users`, `password_reset_tokens` → `auth_db`; `orders`, `order_items` → `order_db`; etc.) using `pg_dump` or your tool.
 2. **Import** each file into the corresponding new database.
 3. Ensure foreign keys that pointed to other DBs are replaced by **logical** references (same IDs); no cross-DB FKs.
 
 ## Step 3: Point Each Service to Its Own Database
 
-Update the `spring.datasource.url` in each module’s `application.yml`:
+Each module’s `application.yml` already points to PostgreSQL. For **distributed** mode, ensure each service’s URL points to its own database:
 
-- **Auth module / app-runner (auth context):**  
-  `jdbc:mysql://localhost:3306/auth_db`
+- **Auth module / app-runner (monolith):**  
+  `jdbc:postgresql://localhost:5432/inxinfo` (one DB for all entities in monolith)
 
-- **Order service / order-module:**  
-  `jdbc:mysql://localhost:3306/order_db`
+- **Auth service (standalone):**  
+  `jdbc:postgresql://localhost:5432/auth_db`
 
-- **Pandit service / pandit-module:**  
-  `jdbc:mysql://localhost:3306/pandit_db`
+- **Order service:**  
+  `jdbc:postgresql://localhost:5432/order_db`
 
-- **Puja service / puja-module:**  
-  `jdbc:mysql://localhost:3306/puja_db`
+- **Pandit service:**  
+  `jdbc:postgresql://localhost:5432/pandit_db`
+
+- **Puja service:**  
+  `jdbc:postgresql://localhost:5432/puja_db`
+
+- **Payment service:**  
+  `jdbc:postgresql://localhost:5432/payment_db`
 
 When running **app-runner** (monolith):
 
-- **Current behaviour:** App-runner uses a **single** datasource pointing to `auth_db`. All entities (auth, order, pandit, puja) are created in `auth_db` when you run the monolith. So for monolith mode, ensure `auth_db` exists and all tables will live there.
-- **Option A (recommended for local dev):** Use one DB for monolith: create `auth_db` and run app-runner; all tables go to `auth_db`. When you run **order-service**, **pandit-service**, or **puja-service** as **separate** apps, they use `order_db`, `pandit_db`, `puja_db` respectively.
-- **Option B (multi-datasource in monolith):** To have the monolith use four separate DBs, add multiple `DataSource` beans in app-runner and assign each to the correct JPA `EntityManager` / repository package (auth → `auth_db`, order → `order_db`, etc.) via `@Primary` and persistence-unit configuration.
+- **Current behaviour:** App-runner uses a **single** datasource pointing to one PostgreSQL database (e.g. `inxinfo`). All entities (auth, order, pandit, puja, payment) are created there. For monolith mode, ensure that database exists.
+- **Option A (recommended for local dev):** Use one DB for monolith; when you run services as **separate** apps, they use their own DBs per module.
+- **Option B (multi-datasource in monolith):** Add multiple `DataSource` beans in app-runner and assign each to the correct JPA persistence context.
 
 ## Step 4: Remove Cross-DB Dependencies
 
@@ -79,46 +86,20 @@ When running **app-runner** (monolith):
   - Pandit: CRUD and bookings (with `user_id` only).
   - Puja: CRUD and bookings (with `user_id` only).
 
-## Quick Reference: Config Snippets
+## Quick Reference: Config Snippets (PostgreSQL)
 
-**auth-module / app-runner (auth):**
-
-```yaml
-spring:
-  datasource:
-    url: jdbc:mysql://localhost:3306/auth_db
-    username: root
-    password: root
-```
-
-**order-service:**
+**app-runner (monolith):**
 
 ```yaml
 spring:
   datasource:
-    url: jdbc:mysql://localhost:3306/order_db
-    username: root
-    password: root
+    url: jdbc:postgresql://localhost:5432/inxinfo
+    username: postgres
+    password: postgres
+    driver-class-name: org.postgresql.Driver
 ```
 
-**pandit-service:**
-
-```yaml
-spring:
-  datasource:
-    url: jdbc:mysql://localhost:3306/pandit_db
-    username: root
-    password: root
-```
-
-**puja-service:**
-
-```yaml
-spring:
-  datasource:
-    url: jdbc:mysql://localhost:3306/puja_db
-    username: root
-    password: root
-```
+**auth-service / order-service / pandit-service / puja-service / payment-service:**  
+Use the same pattern with the appropriate database name (`auth_db`, `order_db`, etc.).
 
 After refactoring, each service has its own database and communicates with others only via APIs.

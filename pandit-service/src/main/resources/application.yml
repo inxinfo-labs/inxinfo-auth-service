@@ -9,18 +9,20 @@ app:
   upload:
     profile-pic-path: uploads/profile-pics
 
+# Standalone run: use inxinfo so auth (users) + pandit tables exist. For separate DB only, set url to jdbc:postgresql://localhost:5432/pandit_db
 spring:
   application:
     name: pandit-service
   datasource:
-    url: jdbc:mysql://localhost:3306/pandit_db
-    username: root
+    url: jdbc:postgresql://localhost:5432/inxinfo
+    username: postgres
     password: root
-    driver-class-name: com.mysql.cj.jdbc.Driver
+    driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
       ddl-auto: update
     show-sql: false
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
 
 # Swagger UI: http://localhost:8083/swagger-ui.html
 springdoc:

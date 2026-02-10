@@ -1,6 +1,7 @@
 # Monolith mode: all services in one app. Frontend can use context-path /api.
 # Run: mvn spring-boot:run -pl app-runner
-# Prerequisite: MySQL running with databases: CREATE DATABASE auth_db; (see docs/REFACTORING_DATABASES.md for order_db, pandit_db, puja_db when running services separately)
+# Prerequisite: Create DB first! In psql or pgAdmin: CREATE DATABASE inxinfo;
+# Or run: psql -U postgres -f scripts/create-db.sql  (from repo root)
 server:
   port: 8080
   servlet:
@@ -12,14 +13,15 @@ spring:
   main:
     allow-bean-definition-overriding: true
   datasource:
-    url: jdbc:mysql://localhost:3306/auth_db
-    username: root
-    password: root
-    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:postgresql://localhost:5432/inxinfo
+    username: postgres
+    password: ${DB_PASSWORD:root}
+    driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
       ddl-auto: update
     show-sql: false
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
     properties:
       hibernate:
         format_sql: true

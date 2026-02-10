@@ -5,14 +5,15 @@ spring:
   application:
     name: payment-service
   datasource:
-    url: jdbc:mysql://localhost:3306/paymentdb
-    username: root
+    url: jdbc:postgresql://localhost:5432/payment_db
+    username: postgres
     password: root
-    driver-class-name: com.mysql.cj.jdbc.Driver
+    driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
       ddl-auto: update
     show-sql: false
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
 
 # Razorpay – never expose key_secret to frontend
 razorpay:

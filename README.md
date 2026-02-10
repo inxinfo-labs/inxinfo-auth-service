@@ -67,7 +67,7 @@ inxinfo-auth-service/
 - **Spring Boot 4.0.1**
 - **Spring Security** with OAuth2
 - **Spring Data JPA**
-- **MySQL** database
+- **PostgreSQL** database
 - **JWT** (JSON Web Tokens)
 - **Maven** (Multi-module)
 - **Lombok**
@@ -78,26 +78,28 @@ inxinfo-auth-service/
 
 - Java 21 or higher
 - Maven 3.6+
-- MySQL 8.0+
+- PostgreSQL (e.g. 13+)
 - Google OAuth2 credentials (for OAuth2 login)
 
 ## ⚙️ Configuration
 
-### Database Setup
+### Database setup (required before first run)
 
-1. Create MySQL database:
-```sql
-CREATE DATABASE authdb;
+The app uses a PostgreSQL database named **`inxinfo`** (monolith and standalone services). Create it once:
+
+**Option A – psql:**
+```bash
+psql -U postgres -c "CREATE DATABASE inxinfo;"
 ```
 
-2. Update `application.yml` with your database credentials:
-```yaml
-spring:
-  datasource:
-    url: jdbc:mysql://localhost:3306/authdb
-    username: your_username
-    password: your_password
+**Option B – from repo root:**
+```bash
+psql -U postgres -f scripts/create-db.sql
 ```
+
+**Option C – in pgAdmin or any client:** run `CREATE DATABASE inxinfo;`
+
+Default connection: `jdbc:postgresql://localhost:5432/inxinfo`, user `postgres`, password `root`. Override with env `DB_PASSWORD` or in `application.yml`.
 
 ### OAuth2 Setup
 

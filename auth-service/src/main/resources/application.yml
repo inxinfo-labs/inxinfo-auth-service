@@ -1,5 +1,5 @@
 # Auth service – distributed mode. Run: mvn spring-boot:run -pl auth-service
-# Prerequisite: CREATE DATABASE auth_db;
+# Prerequisite: CREATE DATABASE auth_db; (PostgreSQL)
 server:
   port: 8081
 
@@ -7,14 +7,15 @@ spring:
   application:
     name: auth-service
   datasource:
-    url: jdbc:mysql://localhost:3306/auth_db
-    username: root
+    url: jdbc:postgresql://localhost:5432/auth_db
+    username: postgres
     password: root
-    driver-class-name: com.mysql.cj.jdbc.Driver
+    driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
       ddl-auto: update
     show-sql: false
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
   mail:
     host: smtp.gmail.com
     port: 587
