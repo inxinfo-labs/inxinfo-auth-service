@@ -65,9 +65,7 @@ public class AuthServiceImpl implements AuthService {
 		if (name.isEmpty()) name = request.getEmail();
 
 		Role role = Role.USER;
-		if (request.getRole() != null && "PANDIT".equalsIgnoreCase(request.getRole().trim())) {
-			role = Role.PANDIT;
-		}
+		boolean wantsPanditApproval = request.getRole() != null && "PANDIT".equalsIgnoreCase(request.getRole().trim());
 		User user = User.builder()
 				.email(email)
 				.password(passwordEncoder.encode(request.getPassword()))
@@ -80,18 +78,24 @@ public class AuthServiceImpl implements AuthService {
 				.country(request.getCountry() != null ? request.getCountry().trim() : null)
 				.location(request.getLocation() != null ? request.getLocation().trim() : null)
 				.role(role)
+				.wantsPanditApproval(wantsPanditApproval)
 				.provider(AuthProvider.LOCAL)
 				.enabled(true)
 				.build();
 
 		userRepository.save(user);
 	    
-	    // Send welcome email
+	    if (wantsPanditApproval) {
+	        try {
+	            emailService.sendPanditApplicationNotify(user.getName(), user.getEmail(), user.getId());
+	        } catch (Exception e) {
+	            System.err.println("Failed to send Pandit application notify: " + e.getMessage());
+	        }
+	    }
 	    try {
 	        emailService.sendWelcomeEmail(user.getEmail(), user.getName());
 	        emailService.sendRegistrationConfirmation(user.getEmail(), user.getName());
 	    } catch (Exception e) {
-	        // Log but don't fail registration if email fails
 	        System.err.println("Failed to send welcome email: " + e.getMessage());
 	    }
 	    

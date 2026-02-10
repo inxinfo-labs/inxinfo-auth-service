@@ -16,6 +16,7 @@ import com.satishlabs.puja.entity.BookingStatus;
 import com.satishlabs.puja.entity.PujaBooking;
 import com.satishlabs.puja.entity.PujaCategory;
 import com.satishlabs.puja.entity.PujaType;
+import com.satishlabs.puja.entity.RitualType;
 import com.satishlabs.puja.repository.PujaBookingRepository;
 import com.satishlabs.puja.repository.PujaTypeRepository;
 import com.satishlabs.puja.service.PujaService;
@@ -72,6 +73,7 @@ public class PujaServiceImpl implements PujaService {
                 .price(request.getPrice())
                 .imageUrl(request.getImageUrl())
                 .durationMinutes(request.getDurationMinutes())
+                .ritualType(request.getRitualType())
                 .category(request.getCategory())
                 .active(request.getActive() != null ? request.getActive() : true)
                 .build();
@@ -87,7 +89,8 @@ public class PujaServiceImpl implements PujaService {
         pujaType.setPrice(request.getPrice());
         pujaType.setImageUrl(request.getImageUrl());
         pujaType.setDurationMinutes(request.getDurationMinutes());
-        pujaType.setCategory(request.getCategory());
+        if (request.getRitualType() != null) pujaType.setRitualType(request.getRitualType());
+        if (request.getCategory() != null) pujaType.setCategory(request.getCategory());
         if (request.getActive() != null) pujaType.setActive(request.getActive());
         return mapToPujaTypeResponse(pujaTypeRepository.save(pujaType));
     }
@@ -168,6 +171,7 @@ public class PujaServiceImpl implements PujaService {
                 .price(pujaType.getPrice())
                 .imageUrl(pujaType.getImageUrl())
                 .durationMinutes(pujaType.getDurationMinutes())
+                .ritualType(pujaType.getRitualType())
                 .category(pujaType.getCategory())
                 .active(pujaType.isActive())
                 .createdAt(pujaType.getCreatedAt())

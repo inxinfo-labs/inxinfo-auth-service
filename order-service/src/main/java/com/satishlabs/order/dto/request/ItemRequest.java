@@ -2,6 +2,8 @@ package com.satishlabs.order.dto.request;
 
 import java.math.BigDecimal;
 
+import com.satishlabs.order.entity.ProductCategory;
+
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -14,7 +16,13 @@ public class ItemRequest {
 
     private String description;
 
-    /** One of: Puja Samagri, Idols & Murtis, Incense & Dhoop, etc. */
+    /** Product category (physical products; distinct from Puja Types). */
+    private ProductCategory productCategory;
+
+    /** Subcategory (e.g. "Brass", "Copper" under Vessels). */
+    private String subCategory;
+
+    /** Legacy free-text category; used if productCategory is null. */
     private String category;
 
     @NotNull(message = "Price is required")

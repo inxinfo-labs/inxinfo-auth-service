@@ -23,15 +23,15 @@ public class EmailServiceImpl implements EmailService {
     @Value("${app.mail.enabled:true}")
     private boolean mailEnabled;
 
-    // Check if mail sender is properly configured
+    @Value("${app.contact.email:satish.prasad@inxinfo.com}")
+    private String adminContactEmail;
+
+    // Check if mail sender is properly configured (from address must be set and valid for sending)
     private boolean isMailConfigured() {
         if (!mailEnabled) {
             return false;
         }
-        // Check if fromEmail is not the default placeholder
-        return fromEmail != null && 
-               !fromEmail.equals("prasadsatish.rnc@gmail.com") &&
-               !fromEmail.equals("satish.prasad@inxinfo.com");
+        return fromEmail != null && !fromEmail.isBlank();
     }
 
     @Override
@@ -171,6 +171,63 @@ public class EmailServiceImpl implements EmailService {
         } catch (Exception e) {
             log.error("Failed to send OTP email to: {}. Error: {}", to, e.getMessage());
             throw new RuntimeException("Failed to send OTP email", e);
+        }
+    }
+
+    @Override
+    public void sendContactToAdmin(String fromName, String fromEmail, String subject, String messageBody) {
+        if (!isMailConfigured()) {
+            log.warn("Email not configured. Contact form message from {} would be sent to admin.", fromEmail);
+            return;
+        }
+        String to = adminContactEmail != null && !adminContactEmail.isBlank() ? adminContactEmail : "satish.prasad@inxinfo.com";
+        try {
+            SimpleMailMessage message = new SimpleMailMessage();
+            message.setFrom(this.fromEmail);
+            message.setTo(to);
+            if (fromEmail != null && !fromEmail.isBlank()) {
+                message.setReplyTo(fromEmail);
+            }
+            message.setSubject(subject != null && !subject.isBlank() ? subject : "Contact from INXINFO Labs");
+            message.setText(
+                "Message from website contact form:\n\n"
+                + "From: " + (fromName != null ? fromName : "") + " <" + (fromEmail != null ? fromEmail : "") + ">\n\n"
+                + (messageBody != null ? messageBody : "")
+            );
+            mailSender.send(message);
+            log.info("Contact form email sent to admin: {}", to);
+        } catch (Exception e) {
+            log.error("Failed to send contact email to admin: {}", e.getMessage());
+            throw new RuntimeException("Failed to send message. Please try again or email us directly.", e);
+        }
+    }
+
+    @Override
+    public void sendPanditApplicationNotify(String applicantName, String applicantEmail, Long userId) {
+        if (!isMailConfigured()) {
+            log.warn("Email not configured. Pandit application from {} would be notified to admin.", applicantEmail);
+            return;
+        }
+        String to = adminContactEmail != null && !adminContactEmail.isBlank() ? adminContactEmail : "satish.prasad@inxinfo.com";
+        try {
+            SimpleMailMessage message = new SimpleMailMessage();
+            message.setFrom(fromEmail);
+            message.setTo(to);
+            message.setSubject("INXINFO Labs: New PanditJi application");
+            message.setText(String.format(
+                "A user has requested to join as PanditJi.\n\n"
+                + "Name: %s\n"
+                + "Email: %s\n"
+                + "User ID: %s\n\n"
+                + "Please log in to Admin → Pandit → Approve from user to approve this applicant.",
+                applicantName != null ? applicantName : "",
+                applicantEmail != null ? applicantEmail : "",
+                userId != null ? userId : ""
+            ));
+            mailSender.send(message);
+            log.info("Pandit application notification sent to admin: {}", to);
+        } catch (Exception e) {
+            log.error("Failed to send Pandit application notify: {}", e.getMessage());
         }
     }
 }

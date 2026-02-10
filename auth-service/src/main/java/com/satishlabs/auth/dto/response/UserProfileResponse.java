@@ -30,6 +30,8 @@ public class UserProfileResponse {
     private String location;
     private String profilePic;
     private Role role;
+    /** True when this user has requested to join as PanditJi and is awaiting admin approval. */
+    private boolean wantsPanditApproval;
 
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;

@@ -25,6 +25,10 @@ public class OrderResponse {
     private List<ProductItemResponse> productItems;
     private BigDecimal totalAmount;
     private OrderStatus status;
+    /** Human-readable label (e.g. "Pending (payment pending)", "Out for delivery"). */
+    private String statusDisplayName;
+    /** Lowercase key for frontend (e.g. "pending", "out_for_delivery"). */
+    private String statusKey;
     private PaymentStatus paymentStatus;
     private String paymentId;
     private String shippingAddress;

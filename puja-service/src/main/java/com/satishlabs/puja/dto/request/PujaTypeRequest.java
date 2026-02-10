@@ -3,6 +3,7 @@ package com.satishlabs.puja.dto.request;
 import java.math.BigDecimal;
 
 import com.satishlabs.puja.entity.PujaCategory;
+import com.satishlabs.puja.entity.RitualType;
 
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotBlank;
@@ -27,7 +28,10 @@ public class PujaTypeRequest {
     @Positive(message = "Duration must be positive")
     private Integer durationMinutes;
 
-    @NotNull(message = "Category is required")
+    /** Ritual type (e.g. GRIHA_PRAVESH, SATYANARAYAN_PUJA). Used in catalog and Pandit specializations. */
+    private RitualType ritualType;
+
+    /** Optional legacy grouping. */
     private PujaCategory category;
 
     private Boolean active = true;

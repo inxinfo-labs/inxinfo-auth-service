@@ -30,8 +30,18 @@ public class Item {
     /** Discounted price; if null, use price */
     private BigDecimal discountPrice;
 
+    /** Legacy: free-text category. When productCategory is set, can mirror its display name. */
     @Column(length = 100)
     private String category;
+
+    /** Product category (Items = physical products; distinct from Puja Types = ritual services). */
+    @Enumerated(EnumType.STRING)
+    @Column(name = "product_category")
+    private ProductCategory productCategory;
+
+    /** Subcategory within productCategory (e.g. "Brass", "Copper" under Vessels). */
+    @Column(name = "sub_category", length = 100)
+    private String subCategory;
 
     /** Stock quantity (inventory) */
     @Builder.Default

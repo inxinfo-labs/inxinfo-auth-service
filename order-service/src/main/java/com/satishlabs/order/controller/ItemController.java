@@ -7,6 +7,8 @@ import org.springframework.web.bind.annotation.*;
 
 import com.satishlabs.auth.dto.response.ApiResponse;
 import com.satishlabs.order.dto.response.ItemResponse;
+import com.satishlabs.order.dto.response.ProductCategoryDto;
+import com.satishlabs.order.entity.ProductCategory;
 import com.satishlabs.order.service.ItemService;
 
 import lombok.RequiredArgsConstructor;
@@ -18,6 +20,18 @@ import lombok.RequiredArgsConstructor;
 public class ItemController {
 
     private final ItemService itemService;
+
+    /** List product categories (physical items; distinct from Puja Types = ritual services). */
+    @GetMapping("/categories")
+    public ResponseEntity<ApiResponse<List<ProductCategoryDto>>> getProductCategories() {
+        List<ProductCategoryDto> list = java.util.Arrays.stream(ProductCategory.values())
+                .map(c -> ProductCategoryDto.builder()
+                        .value(c.name())
+                        .displayName(c.getDisplayName())
+                        .build())
+                .toList();
+        return ResponseEntity.ok(new ApiResponse<>(5000, "Product categories fetched successfully", list));
+    }
 
     @GetMapping
     public ResponseEntity<ApiResponse<List<ItemResponse>>> getActiveItems() {

@@ -32,8 +32,14 @@ public class PujaType {
     @Column(nullable = false)
     private Integer durationMinutes; // Duration in minutes
 
+    /** Ritual type (e.g. Griha Pravesh, Satyanarayan Puja). Used in bookings and Pandit specializations. */
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @Column(name = "ritual_type")
+    private RitualType ritualType;
+
+    /** Legacy grouping; optional when ritualType is set. */
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = true)
     private PujaCategory category;
 
     @Builder.Default

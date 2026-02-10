@@ -70,6 +70,9 @@ public class UserServiceImpl implements UserService {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + id));
         user.setRole(role);
+        if (role == Role.PANDIT) {
+            user.setWantsPanditApproval(false);
+        }
         userRepository.save(user);
     }
 

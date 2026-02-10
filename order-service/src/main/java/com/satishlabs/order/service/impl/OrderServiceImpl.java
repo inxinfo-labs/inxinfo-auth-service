@@ -229,6 +229,8 @@ public class OrderServiceImpl implements OrderService {
                 .productItems(productItemResponses)
                 .totalAmount(order.getTotalAmount())
                 .status(order.getStatus())
+                .statusDisplayName(order.getStatus().getDisplayName())
+                .statusKey(order.getStatus().getKey())
                 .paymentStatus(order.getPaymentStatus())
                 .paymentId(order.getPaymentId())
                 .shippingAddress(order.getShippingAddress())

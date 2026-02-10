@@ -8,6 +8,7 @@ import org.springframework.stereotype.Repository;
 
 import com.satishlabs.puja.entity.PujaCategory;
 import com.satishlabs.puja.entity.PujaType;
+import com.satishlabs.puja.entity.RitualType;
 
 @Repository
 public interface PujaTypeRepository extends JpaRepository<PujaType, Long> {
@@ -15,4 +16,5 @@ public interface PujaTypeRepository extends JpaRepository<PujaType, Long> {
     List<PujaType> findByCategory(PujaCategory category);
     List<PujaType> findByActiveTrue();
     List<PujaType> findByCategoryAndActiveTrue(PujaCategory category);
+    List<PujaType> findByRitualTypeAndActiveTrue(RitualType ritualType);
 }

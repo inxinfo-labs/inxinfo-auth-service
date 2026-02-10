@@ -48,6 +48,7 @@ public class SecurityConfig {
                             "/api/user/profile-pic"
                     ).permitAll()
                     .requestMatchers("/auth/**", "/api/auth/**", "/oauth2/**", "/login/**").permitAll()
+                    .requestMatchers(HttpMethod.POST, "/contact", "/api/contact").permitAll()
                     // Public catalog endpoints (with and without /api prefix for monolith context-path)
                     .requestMatchers("/puja", "/puja/**", "/api/puja", "/api/puja/**").permitAll()
                     .requestMatchers("/pandit", "/pandit/**", "/api/pandit", "/api/pandit/**").permitAll()

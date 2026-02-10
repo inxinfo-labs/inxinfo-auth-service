@@ -15,7 +15,9 @@ import com.satishlabs.auth.security.XUserIdPrincipal;
 import com.satishlabs.puja.dto.request.PujaBookingRequest;
 import com.satishlabs.puja.dto.response.PujaBookingResponse;
 import com.satishlabs.puja.dto.response.PujaTypeResponse;
+import com.satishlabs.puja.dto.response.RitualTypeDto;
 import com.satishlabs.puja.entity.PujaCategory;
+import com.satishlabs.puja.entity.RitualType;
 import com.satishlabs.puja.service.PujaService;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -50,6 +52,18 @@ public class PujaController {
     private static String authHeader(HttpServletRequest request) {
         String h = request.getHeader("Authorization");
         return h != null ? h : "";
+    }
+
+    /** List all ritual types (for Puja catalog and Pandit specializations). */
+    @GetMapping("/ritual-types")
+    public ResponseEntity<ApiResponse<List<RitualTypeDto>>> getRitualTypes() {
+        List<RitualTypeDto> list = java.util.Arrays.stream(RitualType.values())
+                .map(r -> RitualTypeDto.builder()
+                        .value(r.name())
+                        .displayName(r.getDisplayName())
+                        .build())
+                .toList();
+        return ResponseEntity.ok(new ApiResponse<>(2000, "Ritual types fetched successfully", list));
     }
 
     @GetMapping

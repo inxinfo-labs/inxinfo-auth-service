@@ -61,6 +61,10 @@ public class User {
     
     private boolean enabled;
 
+    /** True when user requested to join as PanditJi; admin approves via Admin → Pandit → Approve from user. Nullable for existing rows. */
+    @Column(nullable = true)
+    private Boolean wantsPanditApproval;
+
     // 🔹 DERIVED FIELD (NOT STORED)
     @Transient
     public Integer getAge() {

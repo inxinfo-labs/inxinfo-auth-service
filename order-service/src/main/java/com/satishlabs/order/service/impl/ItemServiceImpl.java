@@ -10,6 +10,7 @@ import com.satishlabs.auth.exception.ResourceNotFoundException;
 import com.satishlabs.order.dto.request.ItemRequest;
 import com.satishlabs.order.dto.response.ItemResponse;
 import com.satishlabs.order.entity.Item;
+import com.satishlabs.order.entity.ProductCategory;
 import com.satishlabs.order.repository.ItemRepository;
 import com.satishlabs.order.service.ItemService;
 
@@ -44,10 +45,15 @@ public class ItemServiceImpl implements ItemService {
     @Override
     @Transactional
     public ItemResponse createItem(ItemRequest request) {
+        String categoryText = request.getProductCategory() != null
+                ? request.getProductCategory().getDisplayName()
+                : request.getCategory();
         Item item = Item.builder()
                 .name(request.getName())
                 .description(request.getDescription())
-                .category(request.getCategory())
+                .category(categoryText)
+                .productCategory(request.getProductCategory())
+                .subCategory(request.getSubCategory())
                 .price(request.getPrice())
                 .discountPrice(request.getDiscountPrice())
                 .stock(request.getStock() != null ? request.getStock() : 0)
@@ -65,7 +71,13 @@ public class ItemServiceImpl implements ItemService {
                 .orElseThrow(() -> new ResourceNotFoundException("Item not found with id: " + id));
         item.setName(request.getName());
         item.setDescription(request.getDescription());
-        if (request.getCategory() != null) item.setCategory(request.getCategory());
+        if (request.getProductCategory() != null) {
+            item.setProductCategory(request.getProductCategory());
+            item.setCategory(request.getProductCategory().getDisplayName());
+        } else if (request.getCategory() != null) {
+            item.setCategory(request.getCategory());
+        }
+        if (request.getSubCategory() != null) item.setSubCategory(request.getSubCategory());
         item.setPrice(request.getPrice());
         item.setDiscountPrice(request.getDiscountPrice());
         if (request.getStock() != null) item.setStock(request.getStock());
@@ -85,11 +97,16 @@ public class ItemServiceImpl implements ItemService {
     }
 
     private ItemResponse toResponse(Item item) {
+        String categoryText = item.getProductCategory() != null
+                ? item.getProductCategory().getDisplayName()
+                : item.getCategory();
         return ItemResponse.builder()
                 .id(item.getId())
                 .name(item.getName())
                 .description(item.getDescription())
-                .category(item.getCategory())
+                .category(categoryText)
+                .productCategory(item.getProductCategory())
+                .subCategory(item.getSubCategory())
                 .price(item.getPrice())
                 .discountPrice(item.getDiscountPrice())
                 .stock(item.getStock() != null ? item.getStock() : 0)
