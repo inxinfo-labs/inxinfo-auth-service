@@ -10,4 +10,6 @@ public interface EmailService {
     void sendContactToAdmin(String fromName, String fromEmail, String subject, String messageBody);
     /** Notify admin that a user has requested to join as PanditJi. */
     void sendPanditApplicationNotify(String applicantName, String applicantEmail, Long userId);
+    /** Notify admin when any new customer registers. */
+    void sendNewCustomerNotify(String customerName, String customerEmail);
 }

@@ -23,12 +23,17 @@ public class ContactController {
 
     @PostMapping
     public ResponseEntity<ApiResponse<Void>> sendMessage(@Valid @RequestBody ContactRequest request) {
-        emailService.sendContactToAdmin(
-            request.getName(),
-            request.getEmail(),
-            request.getSubject(),
-            request.getMessage()
-        );
-        return ResponseEntity.ok(new ApiResponse<>(200, "Message sent. We will reply to you shortly.", null));
+        try {
+            emailService.sendContactToAdmin(
+                request.getName(),
+                request.getEmail(),
+                request.getSubject(),
+                request.getMessage()
+            );
+            return ResponseEntity.ok(new ApiResponse<>(200, "Message sent. We will reply to you shortly.", null));
+        } catch (Exception e) {
+            String msg = e.getMessage() != null ? e.getMessage() : "Email could not be sent. Please email us directly at satish.prasad@inxinfo.com";
+            return ResponseEntity.status(503).body(new ApiResponse<>(503, msg, null));
+        }
     }
 }

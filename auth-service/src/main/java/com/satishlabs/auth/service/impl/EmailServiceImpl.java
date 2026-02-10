@@ -198,7 +198,34 @@ public class EmailServiceImpl implements EmailService {
             log.info("Contact form email sent to admin: {}", to);
         } catch (Exception e) {
             log.error("Failed to send contact email to admin: {}", e.getMessage());
-            throw new RuntimeException("Failed to send message. Please try again or email us directly.", e);
+            String hint = e.getMessage() != null && e.getMessage().toLowerCase().contains("authentication") 
+                ? " Mail server authentication failed. On Render, set MAIL_USERNAME (Gmail) and MAIL_PASSWORD (Gmail App Password). Or email us directly at " + to + "."
+                : " Please email us directly at " + to + ".";
+            throw new RuntimeException("Could not send message." + hint, e);
+        }
+    }
+
+    @Override
+    public void sendNewCustomerNotify(String customerName, String customerEmail) {
+        if (!isMailConfigured()) {
+            log.warn("Email not configured. New customer {} would be notified to admin.", customerEmail);
+            return;
+        }
+        String to = adminContactEmail != null && !adminContactEmail.isBlank() ? adminContactEmail : "satish.prasad@inxinfo.com";
+        try {
+            SimpleMailMessage message = new SimpleMailMessage();
+            message.setFrom(fromEmail);
+            message.setTo(to);
+            message.setSubject("INXINFO Labs: New customer registration");
+            message.setText(String.format(
+                "A new customer has registered.\n\nName: %s\nEmail: %s\n\nThey have received a welcome email.",
+                customerName != null ? customerName : "",
+                customerEmail != null ? customerEmail : ""
+            ));
+            mailSender.send(message);
+            log.info("New customer notification sent to admin: {}", to);
+        } catch (Exception e) {
+            log.error("Failed to send new customer notify: {}", e.getMessage());
         }
     }
 

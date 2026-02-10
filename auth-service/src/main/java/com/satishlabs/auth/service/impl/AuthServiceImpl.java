@@ -93,6 +93,11 @@ public class AuthServiceImpl implements AuthService {
 	        }
 	    }
 	    try {
+	        emailService.sendNewCustomerNotify(user.getName(), user.getEmail());
+	    } catch (Exception e) {
+	        System.err.println("Failed to send admin new-customer notify: " + e.getMessage());
+	    }
+	    try {
 	        emailService.sendWelcomeEmail(user.getEmail(), user.getName());
 	        emailService.sendRegistrationConfirmation(user.getEmail(), user.getName());
 	    } catch (Exception e) {
