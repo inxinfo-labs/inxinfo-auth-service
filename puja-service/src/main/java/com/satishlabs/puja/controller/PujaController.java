@@ -87,6 +87,21 @@ public class PujaController {
         }
     }
 
+    /** List puja types for a ritual type (e.g. SATYANARAYAN_PUJA). For Rituals & Puja detail view. */
+    @GetMapping("/ritual-type/{ritualType}")
+    public ResponseEntity<ApiResponse<List<PujaTypeResponse>>> getPujaTypesByRitualType(
+            @PathVariable String ritualType) {
+        try {
+            RitualType type = RitualType.valueOf(ritualType.toUpperCase());
+            return ResponseEntity.ok(
+                    new ApiResponse<>(2007, "Puja types fetched successfully",
+                            pujaService.getPujaTypesByRitualType(type))
+            );
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().build();
+        }
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<PujaTypeResponse>> getPujaTypeById(@PathVariable Long id) {
         return ResponseEntity.ok(

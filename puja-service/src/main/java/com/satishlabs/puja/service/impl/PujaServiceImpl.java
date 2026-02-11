@@ -59,6 +59,14 @@ public class PujaServiceImpl implements PujaService {
 
     @Override
     @Transactional(readOnly = true)
+    public List<PujaTypeResponse> getPujaTypesByRitualType(RitualType ritualType) {
+        return pujaTypeRepository.findByRitualTypeAndActiveTrue(ritualType).stream()
+                .map(this::mapToPujaTypeResponse)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
     public PujaTypeResponse getPujaTypeById(Long id) {
         PujaType pujaType = pujaTypeRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Puja type not found with id: " + id));

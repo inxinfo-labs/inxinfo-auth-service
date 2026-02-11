@@ -12,6 +12,7 @@ public interface PujaService {
     List<PujaTypeResponse> getAllPujaTypes();
     List<PujaTypeResponse> getAllPujaTypesForAdmin();
     List<PujaTypeResponse> getPujaTypesByCategory(PujaCategory category);
+    List<PujaTypeResponse> getPujaTypesByRitualType(com.satishlabs.puja.entity.RitualType ritualType);
     PujaTypeResponse getPujaTypeById(Long id);
     PujaTypeResponse createPujaType(PujaTypeRequest request);
     PujaTypeResponse updatePujaType(Long id, PujaTypeRequest request);
