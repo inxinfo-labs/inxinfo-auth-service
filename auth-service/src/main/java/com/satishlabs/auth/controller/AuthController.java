@@ -10,6 +10,7 @@ import com.satishlabs.auth.dto.request.RegisterRequest;
 import com.satishlabs.auth.dto.request.ResetPasswordRequest;
 import com.satishlabs.auth.dto.request.SendOtpRequest;
 import com.satishlabs.auth.dto.request.VerifyOtpRequest;
+import com.satishlabs.auth.dto.request.VerifyTwoFactorRequest;
 import com.satishlabs.auth.dto.response.AuthResponse;
 import com.satishlabs.auth.dto.response.SuccessResponse;
 import com.satishlabs.auth.service.AuthService;
@@ -51,6 +52,12 @@ public class AuthController {
 	@PostMapping("/verify-otp")
 	public ResponseEntity<SuccessResponse<AuthResponse>> verifyOtp(@Valid @RequestBody VerifyOtpRequest request) {
 		return ResponseEntity.ok(SuccessResponse.of(authService.verifyOtp(request.getEmailOrPhone(), request.getOtp())));
+	}
+
+	@PostMapping("/verify-2fa")
+	@RateLimiter(name = "auth")
+	public ResponseEntity<SuccessResponse<AuthResponse>> verifyTwoFactor(@Valid @RequestBody VerifyTwoFactorRequest request) {
+		return ResponseEntity.ok(SuccessResponse.of(authService.verifyTwoFactor(request.getTwoFactorTempToken(), request.getOtp())));
 	}
 
 	@PostMapping("/logout")

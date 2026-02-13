@@ -23,6 +23,7 @@ import com.satishlabs.auth.entity.User;
 import com.satishlabs.auth.exception.ResourceNotFoundException;
 import com.satishlabs.auth.repository.UserRepository;
 import com.satishlabs.auth.service.EmailService;
+import com.satishlabs.auth.service.OtpService;
 import com.satishlabs.auth.service.UserService;
 
 import lombok.RequiredArgsConstructor;
@@ -36,6 +37,7 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final EmailService emailService;
+    private final OtpService otpService;
 
     @Value("${app.upload.profile-pic-path:uploads/profile-pics}")
     private String uploadDir;
@@ -171,6 +173,36 @@ public class UserServiceImpl implements UserService {
         } catch (IOException e) {
             throw new RuntimeException("Upload failed", e);
         }
+    }
+
+    @Override
+    public void sendTwoFactorSetupOtp() {
+        User user = userRepository.findByEmail(currentUserEmail())
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        otpService.sendOtp(user.getEmail());
+    }
+
+    @Override
+    public void confirmTwoFactor(String otp) {
+        if (otp == null || otp.isBlank()) {
+            throw new IllegalArgumentException("OTP is required");
+        }
+        User user = userRepository.findByEmail(currentUserEmail())
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        otpService.verifyAndConsume(user.getEmail(), otp.trim());
+        user.setTwoFactorEnabled(true);
+        userRepository.save(user);
+    }
+
+    @Override
+    public void disableTwoFactor(String password) {
+        User user = userRepository.findByEmail(currentUserEmail())
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        if (user.getPassword() == null || !passwordEncoder.matches(password, user.getPassword())) {
+            throw new RuntimeException("Password incorrect");
+        }
+        user.setTwoFactorEnabled(false);
+        userRepository.save(user);
     }
 
 }

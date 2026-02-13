@@ -17,6 +17,7 @@ import com.satishlabs.auth.repository.UserRepository;
 import com.satishlabs.auth.security.JwtUtil;
 import com.satishlabs.auth.service.AuthService;
 import com.satishlabs.auth.service.OtpService;
+import com.satishlabs.auth.service.TwoFactorTokenService;
 import com.satishlabs.auth.config.AppProperties;
 import com.satishlabs.auth.util.AuthProvider;
 
@@ -40,6 +41,7 @@ public class AuthServiceImpl implements AuthService {
 	private final OtpService otpService;
 	private final JwtUtil jwtUtil;
 	private final AppProperties appProperties;
+	private final TwoFactorTokenService twoFactorTokenService;
 
 	private static final SecureRandom RANDOM = new SecureRandom();
 	private static final int RESET_TOKEN_VALID_HOURS = 1;
@@ -139,7 +141,55 @@ public class AuthServiceImpl implements AuthService {
 			throw new UnauthorizedException("Account is disabled");
 		}
 
+		boolean twoFactorOn = Boolean.TRUE.equals(user.getTwoFactorEnabled());
+		if (twoFactorOn) {
+			// Send OTP to user's email for second step
+			try {
+				otpService.sendOtp(user.getEmail());
+			} catch (Exception e) {
+				log.warn("Failed to send 2FA OTP: {}", e.getMessage());
+			}
+			String tempToken = twoFactorTokenService.createToken(
+					user.getId(),
+					user.getEmail(),
+					user.getRole() != null ? user.getRole().name() : "USER");
+			return AuthResponse.builder()
+					.requiresTwoFactor(true)
+					.twoFactorTempToken(tempToken)
+					.email(user.getEmail())
+					.userId(user.getId())
+					.role(user.getRole())
+					.build();
+		}
+
 		String token = jwtUtil.generateToken(user.getEmail(), user.getId(), user.getRole() != null ? user.getRole().name() : "USER");
+		return AuthResponse.builder()
+				.accessToken(token)
+				.userId(user.getId())
+				.email(user.getEmail())
+				.role(user.getRole())
+				.build();
+	}
+
+	@Override
+	public AuthResponse verifyTwoFactor(String twoFactorTempToken, String otp) {
+		if (twoFactorTempToken == null || twoFactorTempToken.isBlank() || otp == null || otp.isBlank()) {
+			throw new UnauthorizedException("Temp token and OTP are required");
+		}
+		TwoFactorTokenService.Entry entry = twoFactorTokenService.getAndRemove(twoFactorTempToken.trim());
+		if (entry == null) {
+			throw new UnauthorizedException("Invalid or expired 2FA session. Please log in again.");
+		}
+		String verifiedKey = otpService.verifyAndConsume(entry.email, otp.trim());
+		if (!entry.email.equalsIgnoreCase(verifiedKey)) {
+			throw new UnauthorizedException("Invalid OTP");
+		}
+		User user = userRepository.findById(entry.userId)
+				.orElseThrow(() -> new UnauthorizedException("User not found"));
+		if (!user.isEnabled()) {
+			throw new UnauthorizedException("Account is disabled");
+		}
+		String token = jwtUtil.generateToken(user.getEmail(), user.getId(), entry.role);
 		return AuthResponse.builder()
 				.accessToken(token)
 				.userId(user.getId())

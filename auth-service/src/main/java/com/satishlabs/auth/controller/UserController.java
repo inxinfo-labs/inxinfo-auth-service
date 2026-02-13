@@ -14,6 +14,8 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.satishlabs.auth.config.AppProperties;
+import com.satishlabs.auth.dto.request.ConfirmTwoFactorRequest;
+import com.satishlabs.auth.dto.request.DisableTwoFactorRequest;
 import com.satishlabs.auth.dto.request.UpdatePasswordRequest;
 import com.satishlabs.auth.dto.request.UpdateProfileRequest;
 import com.satishlabs.auth.dto.response.SuccessResponse;
@@ -92,6 +94,27 @@ public class UserController {
                 .header(HttpHeaders.CACHE_CONTROL, "no-cache")
                 .contentType(MediaType.IMAGE_JPEG)
                 .body(resource);
+    }
+
+    // ================= TWO-FACTOR AUTHENTICATION =================
+    @PostMapping("/2fa/send-setup-otp")
+    public ResponseEntity<SuccessResponse<Void>> sendTwoFactorSetupOtp() {
+        userService.sendTwoFactorSetupOtp();
+        return ResponseEntity.ok(SuccessResponse.of(null));
+    }
+
+    @PostMapping("/2fa/confirm")
+    public ResponseEntity<SuccessResponse<Void>> confirmTwoFactor(
+            @Valid @RequestBody ConfirmTwoFactorRequest request) {
+        userService.confirmTwoFactor(request.getOtp());
+        return ResponseEntity.ok(SuccessResponse.of(null));
+    }
+
+    @PostMapping("/2fa/disable")
+    public ResponseEntity<SuccessResponse<Void>> disableTwoFactor(
+            @Valid @RequestBody DisableTwoFactorRequest request) {
+        userService.disableTwoFactor(request.getPassword());
+        return ResponseEntity.ok(SuccessResponse.of(null));
     }
 
 }

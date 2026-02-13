@@ -9,6 +9,8 @@ public interface AuthService {
 	AuthResponse register(RegisterRequest request);
 	void sendOtp(String emailOrPhone);
 	AuthResponse verifyOtp(String emailOrPhone, String otp);
+	/** Second step when login returned requiresTwoFactor: exchange temp token + OTP for full JWT. */
+	AuthResponse verifyTwoFactor(String twoFactorTempToken, String otp);
 	void forgotPassword(String email);
 	void resetPassword(String token, String newPassword);
 }

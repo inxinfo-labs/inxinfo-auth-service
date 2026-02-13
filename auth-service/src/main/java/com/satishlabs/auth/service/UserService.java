@@ -30,4 +30,13 @@ public interface UserService {
 
     /** Admin: enable or disable user account. */
     void setUserEnabled(Long id, boolean enabled);
+
+    /** Send OTP to current user's email to enable 2FA. Then call confirmTwoFactor(otp). */
+    void sendTwoFactorSetupOtp();
+
+    /** Verify OTP and enable 2FA for current user. Call after sendTwoFactorSetupOtp. */
+    void confirmTwoFactor(String otp);
+
+    /** Disable 2FA for current user. Requires password. */
+    void disableTwoFactor(String password);
 }

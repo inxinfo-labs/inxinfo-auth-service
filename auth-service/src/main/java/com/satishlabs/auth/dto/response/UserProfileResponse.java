@@ -32,6 +32,8 @@ public class UserProfileResponse {
     private Role role;
     /** True when this user has requested to join as PanditJi and is awaiting admin approval. */
     private boolean wantsPanditApproval;
+    /** True when two-factor authentication (OTP after password) is enabled. */
+    private Boolean twoFactorEnabled;
 
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;

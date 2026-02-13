@@ -65,6 +65,10 @@ public class User {
     @Column(nullable = true)
     private Boolean wantsPanditApproval;
 
+    /** When true, login requires a second step (OTP sent to email). Nullable for existing rows. */
+    @Column(nullable = true)
+    private Boolean twoFactorEnabled;
+
     // 🔹 DERIVED FIELD (NOT STORED)
     @Transient
     public Integer getAge() {
