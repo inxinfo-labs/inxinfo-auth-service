@@ -16,7 +16,7 @@ public class CorsConfig implements WebMvcConfigurer {
                         "https://inxinfo.com",
                         "https://inxinfo-user-portal-1.onrender.com"
                 )
-                .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
+                .allowedMethods("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS")
                 .allowedHeaders("*")
                 .allowCredentials(true);
     }
