@@ -1,7 +1,6 @@
 package com.satishlabs.auth.service.impl;
 
 import com.satishlabs.auth.service.EmailService;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -18,9 +17,12 @@ import com.satishlabs.auth.repository.UserRepository;
 import com.satishlabs.auth.security.JwtUtil;
 import com.satishlabs.auth.service.AuthService;
 import com.satishlabs.auth.service.OtpService;
+import com.satishlabs.auth.config.AppProperties;
 import com.satishlabs.auth.util.AuthProvider;
 
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.security.SecureRandom;
 import java.time.Instant;
@@ -29,15 +31,15 @@ import java.util.Base64;
 @Service
 @RequiredArgsConstructor
 public class AuthServiceImpl implements AuthService {
+
+	private static final Logger log = LoggerFactory.getLogger(AuthServiceImpl.class);
 	private final UserRepository userRepository;
 	private final PasswordResetTokenRepository passwordResetTokenRepository;
 	private final PasswordEncoder passwordEncoder;
 	private final EmailService emailService;
 	private final OtpService otpService;
 	private final JwtUtil jwtUtil;
-
-	@Value("${app.frontend.url:http://localhost:3000}")
-	private String frontendUrl;
+	private final AppProperties appProperties;
 
 	private static final SecureRandom RANDOM = new SecureRandom();
 	private static final int RESET_TOKEN_VALID_HOURS = 1;
@@ -52,7 +54,7 @@ public class AuthServiceImpl implements AuthService {
 		if (!GMAIL_PATTERN.matcher(email).matches()) {
 			throw new IllegalArgumentException("Only Gmail addresses are allowed for registration (e.g. you@gmail.com).");
 		}
-		if (userRepository.existsByEmail(email)) {
+		if (userRepository.findByEmailIgnoreCase(email).isPresent()) {
 			throw new DuplicateResourceException("Email already registered");
 		}
 		if (request.getMobileNumber() != null && !request.getMobileNumber().isBlank()
@@ -89,19 +91,19 @@ public class AuthServiceImpl implements AuthService {
 	        try {
 	            emailService.sendPanditApplicationNotify(user.getName(), user.getEmail(), user.getId());
 	        } catch (Exception e) {
-	            System.err.println("Failed to send Pandit application notify: " + e.getMessage());
+	            log.warn("Failed to send Pandit application notify: userId={} error={}", user.getId(), e.getMessage());
 	        }
 	    }
 	    try {
 	        emailService.sendNewCustomerNotify(user.getName(), user.getEmail());
 	    } catch (Exception e) {
-	        System.err.println("Failed to send admin new-customer notify: " + e.getMessage());
+	        log.warn("Failed to send admin new-customer notify: error={}", e.getMessage());
 	    }
 	    try {
 	        emailService.sendWelcomeEmail(user.getEmail(), user.getName());
 	        emailService.sendRegistrationConfirmation(user.getEmail(), user.getName());
 	    } catch (Exception e) {
-	        System.err.println("Failed to send welcome email: " + e.getMessage());
+	        log.warn("Failed to send welcome email: email={} error={}", user.getEmail(), e.getMessage());
 	    }
 	    
 	    String token = jwtUtil.generateToken(user.getEmail(), user.getId(), user.getRole() != null ? user.getRole().name() : "USER");
@@ -117,10 +119,20 @@ public class AuthServiceImpl implements AuthService {
 	@Override
 	public AuthResponse login(LoginRequest request) {
 		String username = request.getUsername() != null ? request.getUsername().trim() : "";
+		if (username.isEmpty()) {
+			throw new UnauthorizedException("Invalid email/phone or password");
+		}
+		String password = request.getPassword() != null ? request.getPassword() : "";
 		User user = userRepository.findByEmailOrMobileNumber(username)
+				.or(() -> username.contains("@") ? userRepository.findByEmailIgnoreCase(username) : java.util.Optional.empty())
 				.orElseThrow(() -> new UnauthorizedException("Invalid email/phone or password"));
 
-		if (user.getPassword() == null || !passwordEncoder.matches(request.getPassword(), user.getPassword())) {
+		if (user.getPassword() == null || user.getPassword().isBlank()) {
+			log.warn("Login rejected: user has no password set (id={}, email={})", user.getId(), user.getEmail());
+			throw new UnauthorizedException("Invalid email/phone or password");
+		}
+		if (!passwordEncoder.matches(password, user.getPassword())) {
+			log.warn("Login rejected: password mismatch (userId={})", user.getId());
 			throw new UnauthorizedException("Invalid email/phone or password");
 		}
 		if (!user.isEnabled()) {
@@ -186,7 +198,7 @@ public class AuthServiceImpl implements AuthService {
 				.expiresAt(expiresAt)
 				.createdAt(now)
 				.build());
-		String resetLink = frontendUrl + "/auth/reset-password?token=" + token;
+		String resetLink = appProperties.getFrontend().getUrl() + "/auth/reset-password?token=" + token;
 		emailService.sendPasswordResetEmail(user.getEmail(), resetLink);
 	}
 

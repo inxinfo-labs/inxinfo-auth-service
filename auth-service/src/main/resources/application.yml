@@ -1,42 +1,113 @@
-# Auth service – distributed mode. Run: mvn spring-boot:run -pl auth-service
-# Prerequisite: CREATE DATABASE auth_db; (PostgreSQL)
+# Centralized configuration. All values overridable via environment variables.
+# No hardcoded URLs, ports, or secrets in code. Use profiles: dev, test, prod.
+
 server:
-  port: 8081
+  port: ${SERVER_PORT:8081}
+  shutdown: graceful
 
 spring:
   application:
     name: auth-service
   datasource:
-    url: jdbc:postgresql://localhost:5432/auth_db
-    username: postgres
-    password: root
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/auth_db}
+    username: ${SPRING_DATASOURCE_USERNAME:postgres}
+    password: ${SPRING_DATASOURCE_PASSWORD:root}
     driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: ${DB_POOL_SIZE:20}
+      minimum-idle: ${DB_POOL_MIN_IDLE:2}
+      connection-timeout: ${DB_POOL_CONNECTION_TIMEOUT_MS:5000}
+      idle-timeout: ${DB_POOL_IDLE_TIMEOUT_MS:300000}
+      max-lifetime: ${DB_POOL_MAX_LIFETIME_MS:1200000}
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: ${JPA_DDL_AUTO:update}
     show-sql: false
     database-platform: org.hibernate.dialect.PostgreSQLDialect
+    properties:
+      hibernate.jdbc.batch_size: ${JPA_BATCH_SIZE:25}
+      hibernate.order_inserts: true
   mail:
-    host: smtp.gmail.com
-    port: 587
+    host: ${MAIL_HOST:smtp.gmail.com}
+    port: ${MAIL_PORT:587}
     username: ${MAIL_USERNAME:}
     password: ${MAIL_PASSWORD:}
     properties:
       mail.smtp.auth: true
       mail.smtp.starttls.enable: true
+  lifecycle:
+    timeout-per-shutdown-phase: ${SHUTDOWN_TIMEOUT_SEC:30}s
 
+# Application config (strongly typed via AppProperties)
 app:
   upload:
-    profile-pic-path: uploads/profile-pics
+    profile-pic-path: ${UPLOAD_PROFILE_PIC_PATH:uploads/profile-pics}
   mail:
-    enabled: true
+    enabled: ${MAIL_ENABLED:true}
   frontend:
     url: ${FRONTEND_URL:http://localhost:3000}
+  cors:
+    allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:3000,http://127.0.0.1:3000}
+    allowed-methods: GET,POST,PUT,DELETE,OPTIONS
+    allowed-headers: "*"
+    allow-credentials: true
+  seed:
+    enabled: ${SEED_ENABLED:true}
+    admin-email: ${SEED_ADMIN_EMAIL:admin@inxinfo.com}
+    admin-default-password: ${SEED_ADMIN_PASSWORD:Admin@123}
 
-# JWT secret – must match api-gateway
-jwt:
-  secret: ${JWT_SECRET:satishlabs-secret-key-satishlabs-secret-key}
+# JWT (strongly typed via JwtProperties). Set JWT_SECRET in production; prod profile has no default.
+auth:
+  jwt:
+    secret: ${JWT_SECRET:dev-secret-do-not-use-in-production}
+    expiration-ms: ${JWT_EXPIRATION_MS:3600000}
+  rate-limit:
+    enabled: ${RATE_LIMIT_ENABLED:true}
+    limit-for-period: ${AUTH_RATE_LIMIT_PER_PERIOD:50}
+    limit-refresh-period: ${AUTH_RATE_LIMIT_REFRESH_PERIOD:1s}
 
+# Actuator
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      probes:
+        enabled: true
+      show-details: when-authorized
+  health:
+    livenessState:
+      enabled: true
+    readinessState:
+      enabled: true
+
+# Resilience4j (retry, circuit breaker, rate limiter)
+resilience4j:
+  retry:
+    instances:
+      authService:
+        maxAttempts: ${RESILIENCE_RETRY_MAX_ATTEMPTS:3}
+        waitDuration: ${RESILIENCE_RETRY_WAIT_MS:200}ms
+        retryExceptions: org.springframework.mail.MailException
+  circuitbreaker:
+    instances:
+      authService:
+        registerHealthIndicator: true
+        slidingWindowSize: ${RESILIENCE_CB_SLIDING_WINDOW:10}
+        failureRateThreshold: ${RESILIENCE_CB_FAILURE_RATE:50}
+        waitDurationInOpenState: ${RESILIENCE_CB_OPEN_DURATION:10s}
+  ratelimiter:
+    instances:
+      auth:
+        limitForPeriod: ${AUTH_RATE_LIMIT_PER_PERIOD:50}
+        limitRefreshPeriod: 1s
+        timeoutDuration: 0
+
+# Logging
 logging:
   level:
-    com.satishlabs.auth: INFO
+    com.satishlabs.auth: ${LOGGING_LEVEL_AUTH:INFO}
+    org.springframework.web: WARN
+    org.hibernate.SQL: WARN

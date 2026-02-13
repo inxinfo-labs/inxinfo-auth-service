@@ -16,6 +16,7 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
+import com.satishlabs.auth.config.AppProperties;
 import com.satishlabs.auth.config.OAuth2SuccessHandler;
 
 import jakarta.servlet.http.HttpServletResponse;
@@ -29,6 +30,7 @@ public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtFilter;
     private final OAuth2SuccessHandler oAuth2SuccessHandler;
+    private final AppProperties appProperties;
 
     // Public GET endpoints for puja/pandit catalog
     // Using string patterns instead of RequestMatcher to avoid compilation issues
@@ -41,6 +43,8 @@ public class SecurityConfig {
             .csrf(AbstractHttpConfigurer::disable)
             .authorizeHttpRequests(auth -> auth
                     .requestMatchers(
+                            "/actuator/health/**",
+                            "/actuator/info",
                             "/v3/api-docs/**",
                             "/swagger-ui/**",
                             "/swagger-ui.html",
@@ -85,20 +89,13 @@ public class SecurityConfig {
         return http.build();
     }
 
-    // 🔥 THIS IS MANDATORY
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOrigins(List.of(
-                "http://localhost:3000",
-                "http://127.0.0.1:3000",
-                "https://www.inxinfo.com",
-                "https://inxinfo.com",
-                "https://inxinfo-user-portal-1.onrender.com"
-        ));
-        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        config.setAllowedHeaders(List.of("*"));
-        config.setAllowCredentials(true);
+        config.setAllowedOrigins(appProperties.getCors().getAllowedOriginsList());
+        config.setAllowedMethods(appProperties.getCors().getAllowedMethods());
+        config.setAllowedHeaders(appProperties.getCors().getAllowedHeaders());
+        config.setAllowCredentials(appProperties.getCors().isAllowCredentials());
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);

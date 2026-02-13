@@ -16,8 +16,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * Seeds default admin user on startup if not present.
- * Admin: admin@inxinfo.com / Admin@123 (change password after first login).
+ * Seeds default admin user on startup if not present and app.seed.enabled is true.
+ * Email and password from app.seed.* (SEED_ADMIN_EMAIL, SEED_ADMIN_PASSWORD).
  */
 @Component
 @Order(1)
@@ -26,18 +26,20 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 public class DataSeeder implements ApplicationRunner {
 
-    private static final String ADMIN_EMAIL = "admin@inxinfo.com";
-    private static final String ADMIN_DEFAULT_PASSWORD = "Admin@123";
-
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final AppProperties appProperties;
 
     @Override
     public void run(ApplicationArguments args) {
-        if (userRepository.findByEmail(ADMIN_EMAIL).isEmpty()) {
+        AppProperties.Seed seed = appProperties.getSeed();
+        if (!seed.isEnabled()) return;
+        String adminEmail = seed.getAdminEmail();
+        if (adminEmail == null || adminEmail.isBlank()) return;
+        if (userRepository.findByEmail(adminEmail).isEmpty()) {
             User admin = User.builder()
-                    .email(ADMIN_EMAIL)
-                    .password(passwordEncoder.encode(ADMIN_DEFAULT_PASSWORD))
+                    .email(adminEmail)
+                    .password(passwordEncoder.encode(seed.getAdminDefaultPassword()))
                     .firstName("Admin")
                     .lastName("User")
                     .name("Admin User")
@@ -46,7 +48,7 @@ public class DataSeeder implements ApplicationRunner {
                     .enabled(true)
                     .build();
             userRepository.save(admin);
-            log.info("Default admin user created: {} (password: {})", ADMIN_EMAIL, ADMIN_DEFAULT_PASSWORD);
+            log.info("Default admin user created: {} (change password after first login)", adminEmail);
         }
     }
 }

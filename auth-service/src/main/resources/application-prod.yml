@@ -1,0 +1,14 @@
+# Prod profile: no default secrets. Set JWT_SECRET, SPRING_DATASOURCE_*, CORS_ALLOWED_ORIGINS, etc.
+auth:
+  jwt:
+    secret: ${JWT_SECRET}
+  rate-limit:
+    enabled: true
+
+app:
+  seed:
+    enabled: ${SEED_ENABLED:false}
+
+logging:
+  level:
+    com.satishlabs.auth: INFO

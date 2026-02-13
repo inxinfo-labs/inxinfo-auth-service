@@ -4,6 +4,8 @@ import java.util.Date;
 
 import org.springframework.stereotype.Component;
 
+import com.satishlabs.auth.config.JwtProperties;
+
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 
@@ -12,20 +14,25 @@ import javax.crypto.SecretKey;
 @Component
 public class JwtUtil {
 
-    private static final String SECRET =
-            "satishlabs-secret-key-satishlabs-secret-key"; // >= 32 chars
+    private final JwtProperties jwtProperties;
 
-    private static final long EXPIRATION = 1000 * 60 * 60;
+    public JwtUtil(JwtProperties jwtProperties) {
+        this.jwtProperties = jwtProperties;
+    }
 
     private SecretKey key() {
-        return Keys.hmacShaKeyFor(SECRET.getBytes());
+        String secret = jwtProperties.getSecret();
+        if (secret == null || secret.isBlank()) {
+            throw new IllegalStateException("auth.jwt.secret is not set. Set JWT_SECRET (and use dev profile for local default).");
+        }
+        return Keys.hmacShaKeyFor(secret.getBytes(java.nio.charset.StandardCharsets.UTF_8));
     }
 
     public String generateToken(String email) {
         return Jwts.builder()
                 .setSubject(email)
                 .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION))
+                .setExpiration(new Date(System.currentTimeMillis() + jwtProperties.getExpirationMs()))
                 .signWith(key())
                 .compact();
     }
@@ -35,7 +42,7 @@ public class JwtUtil {
                 .setSubject(email)
                 .claim("userId", userId)
                 .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION))
+                .setExpiration(new Date(System.currentTimeMillis() + jwtProperties.getExpirationMs()))
                 .signWith(key())
                 .compact();
     }
@@ -47,7 +54,7 @@ public class JwtUtil {
                 .claim("userId", userId)
                 .claim("role", role != null ? role : "USER")
                 .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION))
+                .setExpiration(new Date(System.currentTimeMillis() + jwtProperties.getExpirationMs()))
                 .signWith(key())
                 .compact();
     }

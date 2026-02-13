@@ -47,9 +47,27 @@ app:
     profile-pic-path: uploads/profile-pics
   mail:
     enabled: true
-  # Frontend URL for password reset link in email (no trailing slash)
   frontend:
     url: ${FRONTEND_URL:http://localhost:3000}
+  cors:
+    allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:3000,http://127.0.0.1:3000}
+    allowed-methods: GET,POST,PUT,DELETE,OPTIONS
+    allowed-headers: "*"
+    allow-credentials: true
+  seed:
+    enabled: ${SEED_ENABLED:true}
+    admin-email: ${SEED_ADMIN_EMAIL:admin@inxinfo.com}
+    admin-default-password: ${SEED_ADMIN_PASSWORD:Admin@123}
+
+# Auth module (auth-service runs inside app-runner): JWT and rate limit
+auth:
+  jwt:
+    secret: ${JWT_SECRET:dev-secret-do-not-use-in-production}
+    expiration-ms: ${JWT_EXPIRATION_MS:3600000}
+  rate-limit:
+    enabled: ${RATE_LIMIT_ENABLED:true}
+    limit-for-period: ${AUTH_RATE_LIMIT_PER_PERIOD:50}
+    limit-refresh-period: 1s
 
 # Swagger UI: http://localhost:8080/api/swagger-ui.html (context-path is /api)
 springdoc:

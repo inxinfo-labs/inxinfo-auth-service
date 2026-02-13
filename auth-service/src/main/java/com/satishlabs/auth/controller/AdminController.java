@@ -6,7 +6,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-import com.satishlabs.auth.dto.response.ApiResponse;
+import com.satishlabs.auth.dto.response.SuccessResponse;
 import com.satishlabs.auth.dto.response.UserProfileResponse;
 import com.satishlabs.auth.entity.Role;
 import com.satishlabs.auth.service.UserService;
@@ -17,38 +17,37 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 @RequestMapping("/admin")
 @PreAuthorize("hasRole('ADMIN')")
-@CrossOrigin(origins = "http://localhost:3000")
 public class AdminController {
 
     private final UserService userService;
 
     @GetMapping("/users")
-    public ResponseEntity<ApiResponse<List<UserProfileResponse>>> getAllUsers() {
-        return ResponseEntity.ok(new ApiResponse<>(2001, "Users fetched successfully", userService.getAllUsers()));
+    public ResponseEntity<SuccessResponse<List<UserProfileResponse>>> getAllUsers() {
+        return ResponseEntity.ok(SuccessResponse.of(userService.getAllUsers()));
     }
 
     @GetMapping("/users/{id}")
-    public ResponseEntity<ApiResponse<UserProfileResponse>> getUserById(@PathVariable Long id) {
-        return ResponseEntity.ok(new ApiResponse<>(2002, "User fetched successfully", userService.getProfileById(id)));
+    public ResponseEntity<SuccessResponse<UserProfileResponse>> getUserById(@PathVariable Long id) {
+        return ResponseEntity.ok(SuccessResponse.of(userService.getProfileById(id)));
     }
 
     @PutMapping("/users/{id}/role")
-    public ResponseEntity<ApiResponse<Void>> updateUserRole(
+    public ResponseEntity<SuccessResponse<Void>> updateUserRole(
             @PathVariable Long id,
             @RequestBody Role role) {
         userService.updateUserRole(id, role);
-        return ResponseEntity.ok(new ApiResponse<>(2003, "User role updated successfully", null));
+        return ResponseEntity.ok(SuccessResponse.of(null));
     }
 
     @PutMapping("/users/{id}/enable")
-    public ResponseEntity<ApiResponse<Void>> enableUser(@PathVariable Long id) {
+    public ResponseEntity<SuccessResponse<Void>> enableUser(@PathVariable Long id) {
         userService.setUserEnabled(id, true);
-        return ResponseEntity.ok(new ApiResponse<>(2004, "User enabled successfully", null));
+        return ResponseEntity.ok(SuccessResponse.of(null));
     }
 
     @PutMapping("/users/{id}/disable")
-    public ResponseEntity<ApiResponse<Void>> disableUser(@PathVariable Long id) {
+    public ResponseEntity<SuccessResponse<Void>> disableUser(@PathVariable Long id) {
         userService.setUserEnabled(id, false);
-        return ResponseEntity.ok(new ApiResponse<>(2005, "User disabled successfully", null));
+        return ResponseEntity.ok(SuccessResponse.of(null));
     }
 }

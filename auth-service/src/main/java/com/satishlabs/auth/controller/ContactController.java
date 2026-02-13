@@ -3,8 +3,10 @@ package com.satishlabs.auth.controller;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import com.satishlabs.auth.constants.ErrorCodes;
 import com.satishlabs.auth.dto.request.ContactRequest;
-import com.satishlabs.auth.dto.response.ApiResponse;
+import com.satishlabs.auth.dto.response.SuccessResponse;
+import com.satishlabs.auth.exception.BusinessException;
 import com.satishlabs.auth.service.EmailService;
 
 import jakarta.validation.Valid;
@@ -16,13 +18,12 @@ import lombok.RequiredArgsConstructor;
 @RestController
 @RequestMapping("/contact")
 @RequiredArgsConstructor
-@CrossOrigin(origins = {"http://localhost:3000", "https://inxinfo-user-portal-1.onrender.com", "https://www.inxinfo.com", "https://inxinfo.com"})
 public class ContactController {
 
     private final EmailService emailService;
 
     @PostMapping
-    public ResponseEntity<ApiResponse<Void>> sendMessage(@Valid @RequestBody ContactRequest request) {
+    public ResponseEntity<SuccessResponse<Void>> sendMessage(@Valid @RequestBody ContactRequest request) {
         try {
             emailService.sendContactToAdmin(
                 request.getName(),
@@ -30,10 +31,10 @@ public class ContactController {
                 request.getSubject(),
                 request.getMessage()
             );
-            return ResponseEntity.ok(new ApiResponse<>(200, "Message sent. We will reply to you shortly.", null));
+            return ResponseEntity.ok(SuccessResponse.of(null));
         } catch (Exception e) {
-            String msg = e.getMessage() != null ? e.getMessage() : "Email could not be sent. Please email us directly at satish.prasad@inxinfo.com";
-            return ResponseEntity.status(503).body(new ApiResponse<>(503, msg, null));
+            throw new BusinessException(ErrorCodes.CONTACT_503_001,
+                e.getMessage() != null ? e.getMessage() : ErrorCodes.CONTACT_503_001.getDefaultMessage());
         }
     }
 }

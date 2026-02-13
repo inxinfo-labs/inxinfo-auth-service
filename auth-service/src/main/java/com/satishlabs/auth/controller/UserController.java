@@ -5,7 +5,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 import org.springframework.http.HttpHeaders;
@@ -14,10 +13,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.satishlabs.auth.constants.AuthConstants;
+import com.satishlabs.auth.config.AppProperties;
 import com.satishlabs.auth.dto.request.UpdatePasswordRequest;
 import com.satishlabs.auth.dto.request.UpdateProfileRequest;
-import com.satishlabs.auth.dto.response.ApiResponse;
+import com.satishlabs.auth.dto.response.SuccessResponse;
 import com.satishlabs.auth.dto.response.UserProfileResponse;
 import com.satishlabs.auth.service.UserService;
 
@@ -27,55 +26,48 @@ import lombok.RequiredArgsConstructor;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/user")
-@CrossOrigin(origins = "http://localhost:3000")
 public class UserController {
 
     private final UserService userService;
-
-    @Value("${app.upload.profile-pic-path:uploads/profile-pics}")
-    private String uploadDir;
+    private final AppProperties appProperties;
 
     // ================= GET PROFILE =================
     @GetMapping("/me")
-    public ResponseEntity<ApiResponse<UserProfileResponse>> getProfile() {
-        return ResponseEntity.ok(
-                new ApiResponse<>(AuthConstants.CODE_PROFILE_FETCHED, AuthConstants.MSG_PROFILE_FETCHED, userService.getProfile())
-        );
+    public ResponseEntity<SuccessResponse<UserProfileResponse>> getProfile() {
+        return ResponseEntity.ok(SuccessResponse.of(userService.getProfile()));
     }
 
     /** For other services (order, pandit, puja) to resolve userId → display info. Requires valid JWT. */
     @GetMapping("/{id}")
-    public ResponseEntity<ApiResponse<UserProfileResponse>> getProfileById(@PathVariable Long id) {
-        return ResponseEntity.ok(
-                new ApiResponse<>(AuthConstants.CODE_PROFILE_FETCHED, AuthConstants.MSG_PROFILE_FETCHED, userService.getProfileById(id))
-        );
+    public ResponseEntity<SuccessResponse<UserProfileResponse>> getProfileById(@PathVariable Long id) {
+        return ResponseEntity.ok(SuccessResponse.of(userService.getProfileById(id)));
     }
 
     // ================= UPDATE PROFILE =================
     @PutMapping("/profile")
-    public ResponseEntity<ApiResponse<Void>> updateProfile(
+    public ResponseEntity<SuccessResponse<Void>> updateProfile(
             @Valid @RequestBody UpdateProfileRequest request) {
 
         userService.updateProfile(request);
-        return ResponseEntity.ok(new ApiResponse<>(AuthConstants.CODE_PROFILE_UPDATED, AuthConstants.MSG_PROFILE_UPDATED, null));
+        return ResponseEntity.ok(SuccessResponse.of(null));
     }
 
     // ================= UPDATE PASSWORD =================
     @PutMapping("/password")
-    public ResponseEntity<ApiResponse<Void>> updatePassword(
+    public ResponseEntity<SuccessResponse<Void>> updatePassword(
             @Valid @RequestBody UpdatePasswordRequest request) {
 
         userService.updatePassword(request);
-        return ResponseEntity.ok(new ApiResponse<>(AuthConstants.CODE_PASSWORD_UPDATED, AuthConstants.MSG_PASSWORD_UPDATED, null));
+        return ResponseEntity.ok(SuccessResponse.of(null));
     }
 
     // ================= UPLOAD PROFILE PIC =================
     @PostMapping("/profile-pic")
-    public ResponseEntity<ApiResponse<Void>> uploadProfilePic(
+    public ResponseEntity<SuccessResponse<Void>> uploadProfilePic(
             @RequestParam("file") MultipartFile file) {
 
         userService.uploadProfilePic(file);
-        return ResponseEntity.ok(new ApiResponse<>(AuthConstants.CODE_PROFILE_PIC_UPLOADED, AuthConstants.MSG_PROFILE_PIC_UPLOADED, null));
+        return ResponseEntity.ok(SuccessResponse.of(null));
     }
 
     // ================= GET PROFILE PIC =================
@@ -88,7 +80,7 @@ public class UserController {
             return ResponseEntity.notFound().build();
         }
 
-        Path path = Paths.get(uploadDir).resolve(profile.getProfilePic());
+        Path path = Paths.get(appProperties.getUpload().getProfilePicPath()).resolve(profile.getProfilePic());
         Resource resource = new UrlResource(path.toUri());
 
         if (!resource.exists()) {
