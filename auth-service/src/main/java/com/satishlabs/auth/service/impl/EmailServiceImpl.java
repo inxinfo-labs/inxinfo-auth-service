@@ -206,7 +206,7 @@ public class EmailServiceImpl implements EmailService {
     }
 
     @Override
-    public void sendNewCustomerNotify(String customerName, String customerEmail) {
+    public void sendNewCustomerNotify(String customerName, String customerEmail, boolean panditApplicant) {
         if (!isMailConfigured()) {
             log.warn("Email not configured. New customer {} would be notified to admin.", customerEmail);
             return;
@@ -216,14 +216,20 @@ public class EmailServiceImpl implements EmailService {
             SimpleMailMessage message = new SimpleMailMessage();
             message.setFrom(fromEmail);
             message.setTo(to);
-            message.setSubject("INXINFO Labs: New customer registration");
+            String subject = panditApplicant
+                ? "INXINFO Labs: New Pandit applicant registered"
+                : "INXINFO Labs: New customer registration";
+            String typeLine = panditApplicant
+                ? "Type: Pandit applicant (approval pending)\n\n"
+                : "Type: Customer\n\n";
+            message.setSubject(subject);
             message.setText(String.format(
-                "A new customer has registered.\n\nName: %s\nEmail: %s\n\nThey have received a welcome email.",
+                "A new user has registered.\n\n" + typeLine + "Name: %s\nEmail: %s\n\nThey have received a welcome email.",
                 customerName != null ? customerName : "",
                 customerEmail != null ? customerEmail : ""
             ));
             mailSender.send(message);
-            log.info("New customer notification sent to admin: {}", to);
+            log.info("New user registration notification sent to admin: {}", to);
         } catch (Exception e) {
             log.error("Failed to send new customer notify: {}", e.getMessage());
         }
@@ -255,6 +261,37 @@ public class EmailServiceImpl implements EmailService {
             log.info("Pandit application notification sent to admin: {}", to);
         } catch (Exception e) {
             log.error("Failed to send Pandit application notify: {}", e.getMessage());
+        }
+    }
+
+    @Override
+    public void sendProfileUpdateNotify(String userName, String userEmail, Long userId, String role) {
+        if (!isMailConfigured()) {
+            log.warn("Email not configured. Profile update by {} would be notified to admin.", userEmail);
+            return;
+        }
+        String to = adminContactEmail != null && !adminContactEmail.isBlank() ? adminContactEmail : "satish.prasad@inxinfo.com";
+        try {
+            SimpleMailMessage message = new SimpleMailMessage();
+            message.setFrom(fromEmail);
+            message.setTo(to);
+            message.setSubject("INXINFO Labs: User profile updated");
+            message.setText(String.format(
+                "A user has updated their profile.\n\n"
+                + "Name: %s\n"
+                + "Email: %s\n"
+                + "User ID: %s\n"
+                + "Role: %s\n\n"
+                + "You can review the change in Admin → Users.",
+                userName != null ? userName : "",
+                userEmail != null ? userEmail : "",
+                userId != null ? userId : "",
+                role != null ? role : "USER"
+            ));
+            mailSender.send(message);
+            log.info("Profile update notification sent to admin: {}", to);
+        } catch (Exception e) {
+            log.error("Failed to send profile update notify: {}", e.getMessage());
         }
     }
 }

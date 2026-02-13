@@ -22,16 +22,20 @@ import com.satishlabs.auth.entity.Role;
 import com.satishlabs.auth.entity.User;
 import com.satishlabs.auth.exception.ResourceNotFoundException;
 import com.satishlabs.auth.repository.UserRepository;
+import com.satishlabs.auth.service.EmailService;
 import com.satishlabs.auth.service.UserService;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final EmailService emailService;
 
     @Value("${app.upload.profile-pic-path:uploads/profile-pics}")
     private String uploadDir;
@@ -99,6 +103,17 @@ public class UserServiceImpl implements UserService {
         user.setLocation(request.getLocation());
 
         userRepository.save(user);
+
+        try {
+            emailService.sendProfileUpdateNotify(
+                user.getName(),
+                user.getEmail(),
+                user.getId(),
+                user.getRole() != null ? user.getRole().name() : "USER"
+            );
+        } catch (Exception e) {
+            log.warn("Failed to send admin profile-update notify: userId={} error={}", user.getId(), e.getMessage());
+        }
     }
 
     @Override
@@ -141,6 +156,17 @@ public class UserServiceImpl implements UserService {
 
             user.setProfilePic(fileName);
             userRepository.save(user);
+
+            try {
+                emailService.sendProfileUpdateNotify(
+                    user.getName(),
+                    user.getEmail(),
+                    user.getId(),
+                    user.getRole() != null ? user.getRole().name() : "USER"
+                );
+            } catch (Exception ex) {
+                log.warn("Failed to send admin profile-pic-update notify: userId={} error={}", user.getId(), ex.getMessage());
+            }
 
         } catch (IOException e) {
             throw new RuntimeException("Upload failed", e);

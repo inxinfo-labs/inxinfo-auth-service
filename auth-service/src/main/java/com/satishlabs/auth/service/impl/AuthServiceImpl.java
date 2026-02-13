@@ -95,7 +95,7 @@ public class AuthServiceImpl implements AuthService {
 	        }
 	    }
 	    try {
-	        emailService.sendNewCustomerNotify(user.getName(), user.getEmail());
+	        emailService.sendNewCustomerNotify(user.getName(), user.getEmail(), wantsPanditApproval);
 	    } catch (Exception e) {
 	        log.warn("Failed to send admin new-customer notify: error={}", e.getMessage());
 	    }
